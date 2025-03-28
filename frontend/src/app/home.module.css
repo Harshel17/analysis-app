@@ -1,0 +1,62 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    background-color: #f9f9f9;
+  }
+  
+  .heading {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #1e3a8a; /* blue-800 */
+    margin-bottom: 1rem;
+  }
+  
+  .buttonGroup {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .button {
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .startBtn {
+    background-color: #3b82f6; /* blue-500 */
+    color: white;
+  }
+  
+  .startBtn:hover {
+    background-color: #2563eb; /* blue-600 */
+  }
+  
+  .savedBtn {
+    background-color: #22c55e; /* green-500 */
+    color: white;
+  }
+  
+  .savedBtn:hover {
+    background-color: #16a34a; /* green-600 */
+  }
+  
+  .brandBackground {
+    position: absolute;
+    top: 20%;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 6rem;
+    font-weight: bold;
+    opacity: 0.05;
+    z-index: 0;
+    letter-spacing: 10px;
+  }
+  

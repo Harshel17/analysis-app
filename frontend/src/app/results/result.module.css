@@ -1,0 +1,96 @@
+.container {
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    max-width: 1000px;
+    margin: 2rem auto;
+    color: #222;
+  }
+  
+  .title {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    color: #2563eb;
+    margin-bottom: 1.5rem;
+  }
+  
+  .parametersBox {
+    background-color: #e0f2fe;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+  }
+  
+  .parametersHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    color: #1e40af;
+    margin-bottom: 1rem;
+  }
+  
+  .parametersGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+  }
+  
+  .editInput {
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 80px;
+  }
+  
+  .editButton, .saveButton, .viewSavedButton, .permanentButton {
+    padding: 6px 12px;
+    font-weight: 600;
+    border-radius: 5px;
+    cursor: pointer;
+    border: none;
+  }
+  
+  .editButton { background-color: #facc15; color: #1e293b; }
+  .saveButton { background-color: #10b981; color: white; }
+  .permanentButton { background-color: #7c3aed; color: white; }
+  .viewSavedButton { background-color: #3b82f6; color: white; }
+  
+  .errorBox {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    padding: 1rem;
+    text-align: center;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .tableContainer {
+    overflow-x: auto;
+    border-radius: 8px;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    background-color: #f9fafb;
+  }
+  
+  .table th, .table td {
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    text-align: center;
+  }
+  
+  

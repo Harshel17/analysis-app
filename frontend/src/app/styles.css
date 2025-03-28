@@ -1,0 +1,26 @@
+@keyframes backgroundFloat {
+    0%, 100% {
+      transform: scale(1) translateY(0px);
+    }
+    50% {
+      transform: scale(1.02) translateY(-8px);
+    }
+  }
+  
+  .animate-backgroundFloat {
+    animation: backgroundFloat 6s ease-in-out infinite;
+  }
+  
+  @keyframes pulseSlow {
+    0%, 100% {
+      opacity: 0.2;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+  
+  .animate-pulse-slow {
+    animation: pulseSlow 5s ease-in-out infinite;
+  }
+  
