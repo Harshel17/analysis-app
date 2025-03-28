@@ -43,9 +43,11 @@ export default function ResultsPage() {
             const resultsData = await resultsResponse.json();
             setResults(resultsData);
         } catch (error) {
-            console.error("Error fetching data:", error);
-            setError(error.message);
-        }
+            const err = error as Error;
+            console.error("Error fetching data:", err);
+            setError(err.message);
+          }
+          
     };
 
     const handleSaveUpdates = async () => {
