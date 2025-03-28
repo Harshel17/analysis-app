@@ -16,6 +16,9 @@ load_dotenv()
 
 # ✅ Define FastAPI app
 app = FastAPI()
+import logging
+logging.warning("App started successfully")
+
 
 # ✅ CORS Middleware (Avoid duplicate calls)
 app.add_middleware(
