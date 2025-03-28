@@ -38,6 +38,9 @@ app.include_router(analysis.router, prefix="/api")
 @app.get("/")
 def home():
     return {"message": "API is working!"}
+@app.get("/")
+def read_root():
+    return {"message": "API is working!"}
 
 # ✅ Dependency for DB session
 def get_db():
