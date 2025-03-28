@@ -29,7 +29,7 @@ export default function AnalysisForm() {
         console.log("Submitting form data:", formData);  // ✅ Debugging log
     
         try {
-            const response = await fetch(`${config.BASE_URL}/analysis/`, {
+            const response = await fetch(`${config}/analysis/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

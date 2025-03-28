@@ -25,7 +25,7 @@ export default function SavedAnalysisPage() {
             setError(null);
             setResults([]);
 
-            const analysisResponse = await fetch(`${config.BASE_URL}/api/analysis/${searchId}`);
+            const analysisResponse = await fetch(`${config}/api/analysis/${searchId}`);
             if (!analysisResponse.ok) throw new Error("Failed to fetch analysis details");
             const analysisData = await analysisResponse.json();
             setAnalysisData(analysisData);

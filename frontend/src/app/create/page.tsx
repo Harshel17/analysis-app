@@ -52,7 +52,7 @@ export default function CreateAnalysis() {
         console.log("Submitting Data:", formattedData);  // ✅ Debugging Log
     
         try {
-            const response = await fetch(`${config.BASE_URL}/api/analysis/`, {
+            const response = await fetch(`${config}/api/analysis/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formattedData),
@@ -72,13 +72,17 @@ export default function CreateAnalysis() {
                 router.push(`/results?id=${data.id}`);
             }, 2000);
     
-        } catch (error: any) {
-            console.error("Error:", error);
-            setError(error.message);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+        } catch (error) {
+            if (error instanceof Error) {
+              console.error("Error:", error.message);
+              setError(error.message);
+            } else {
+              console.error("Unknown error:", error);
+              setError("Something went wrong.");
+            }
+          };
+          
+
     
     
  

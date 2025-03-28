@@ -31,13 +31,13 @@ export default function ResultsPage() {
         try {
             setError(null);
 
-            const analysisResponse = await fetch(`${config.BASE_URL}/api/analysis/${id}`);
+            const analysisResponse = await fetch(`${config}/api/analysis/${id}`);
             if (!analysisResponse.ok) throw new Error("Failed to fetch analysis details");
             const analysisData = await analysisResponse.json();
             setAnalysisData(analysisData);
             setUpdatedParameters({ ...analysisData });
 
-            const resultsResponse = await fetch(`http://127.0.0.1:8000/api/results/${id}`);
+            const resultsResponse = await fetch(`${config}/api/results/${id}`);
             if (!resultsResponse.ok) throw new Error("Failed to fetch results");
             const resultsData = await resultsResponse.json();
             setResults(resultsData);
@@ -52,7 +52,7 @@ export default function ResultsPage() {
         try {
             setError(null);
 
-            const response = await fetch(`http://127.0.0.1:8000/api/update-analysis/${analysisId}`, {
+            const response = await fetch(`${config}/api/update-analysis/${analysisId}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updatedParameters),
@@ -60,11 +60,12 @@ export default function ResultsPage() {
 
             if (!response.ok) throw new Error("Failed to update parameters");
 
-            const data = await response.json();
+            console.log("Move to permanent response:", data);
+
             setAnalysisData(updatedParameters);
             setIsEditing(false);
 
-            const updatedResults = await fetch(`http://127.0.0.1:8000/api/results/${analysisId}`);
+            const updatedResults = await fetch(`${config}/api/results/${analysisId}`);
             if (!updatedResults.ok) throw new Error("Failed to fetch updated results");
 
             const refreshed = await updatedResults.json();
@@ -80,7 +81,7 @@ export default function ResultsPage() {
     const handleMoveToPermanent = async () => {
         setIsMovingToPermanent(true);
         try {
-            const response = await fetch(`http://127.0.0.1:8000/api/move-to-permanent/${analysisId}`, {
+            const response = await fetch(`${config}/api/move-to-permanent/${analysisId}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
             });
