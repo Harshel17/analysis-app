@@ -23,7 +23,8 @@ export default function AnalysisForm() {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
-    const handleSubmit = async (event) => {
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+
         event.preventDefault();
     
         console.log("Submitting form data:", formData);  // ✅ Debugging log
