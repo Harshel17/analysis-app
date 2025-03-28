@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./create.module.css";
-import BASE_URL from "../utils/config"; // or correct relative path
+import config from '../../../utils/config';
+ // or correct relative path
 
 
 

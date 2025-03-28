@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import styles from './result.module.css';
-import BASE_URL from "../utils/config"; // or correct relative path
+import config from '../../../utils/config';
+ // or correct relative path
 
 
 export default function ResultsPage() {

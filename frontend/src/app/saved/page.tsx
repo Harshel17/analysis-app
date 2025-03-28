@@ -4,7 +4,8 @@ import Papa from "papaparse";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import styles from './saved.module.css';
-import BASE_URL from "../utils/config"; // or correct relative path
+import config from '../../../utils/config';
+ // or correct relative path
 
 
 

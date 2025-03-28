@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import BASE_URL from "../utils/config"; // or correct relative path
+import config from '../../../utils/config';
+ // or correct relative path
 
 
 
