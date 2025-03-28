@@ -64,6 +64,8 @@ export default function ResultsPage() {
 
             if (!response.ok) throw new Error("Failed to update parameters");
 
+            const data = await response.json();
+
             console.log("Move to permanent response:", data);
 
             setAnalysisData(updatedParameters);
