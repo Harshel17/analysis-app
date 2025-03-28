@@ -55,25 +55,25 @@ export default function ResultsPage() {
         setIsSaving(true);
         try {
             setError(null);
-
+    
             const response = await fetch(`${config}/api/update-analysis/${analysisId}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updatedParameters),
             });
-
+    
             if (!response.ok) throw new Error("Failed to update parameters");
-
-            const data = await response.json();
-
+    
+            const data = await response.json(); // ✅ Add this line
+    
             console.log("Move to permanent response:", data);
-
+    
             setAnalysisData(updatedParameters);
             setIsEditing(false);
-
+    
             const updatedResults = await fetch(`${config}/api/results/${analysisId}`);
             if (!updatedResults.ok) throw new Error("Failed to fetch updated results");
-
+    
             const refreshed = await updatedResults.json();
             setResults(refreshed);
             alert("✅ Updates saved successfully!");
@@ -83,7 +83,7 @@ export default function ResultsPage() {
         }
         setIsSaving(false);
     };
-
+    
     const handleMoveToPermanent = async () => {
         setIsMovingToPermanent(true);
         try {
