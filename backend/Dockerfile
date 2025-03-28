@@ -1,19 +1,16 @@
-# backend/Dockerfile
-
 FROM python:3.10-slim
 
-# Set environment
 WORKDIR /app
 
-# Copy and install dependencies
+# Install dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-# Copy app code
+# Copy all files
 COPY . .
 
-# Expose the port
+# Expose FastAPI port
 EXPOSE 8000
 
 # Run the app
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
