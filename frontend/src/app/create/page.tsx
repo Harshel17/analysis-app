@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./create.module.css";
-import config from '@/utils/config'
+import config from '@/utils/config';
+
 
  // or correct relative path
 
@@ -51,7 +52,7 @@ export default function CreateAnalysis() {
         console.log("Submitting Data:", formattedData);  // ✅ Debugging Log
     
         try {
-            const response = await fetch(`${BASE_URL}/api/analysis/`, {
+            const response = await fetch(`${config.BASE_URL}/api/analysis/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formattedData),

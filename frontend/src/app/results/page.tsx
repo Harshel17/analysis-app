@@ -31,7 +31,7 @@ export default function ResultsPage() {
         try {
             setError(null);
 
-            const analysisResponse = await fetch(`${BASE_URL}/api/analysis/${id}`);
+            const analysisResponse = await fetch(`${config.BASE_URL}/api/analysis/${id}`);
             if (!analysisResponse.ok) throw new Error("Failed to fetch analysis details");
             const analysisData = await analysisResponse.json();
             setAnalysisData(analysisData);
