@@ -13,7 +13,8 @@ export default function ResultsPage() {
     const analysisId = searchParams.get("id");
 
     const [results, setResults] = useState([]);
-    const [analysisData, setAnalysisData] = useState(null);
+    const [analysisData, setAnalysisData] = useState<any>(null);
+
     const [error, setError] = useState<string | null>(null);
 
     const [isEditing, setIsEditing] = useState(false);
