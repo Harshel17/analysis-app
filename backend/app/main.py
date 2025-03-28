@@ -10,6 +10,7 @@ import os  # ✅ Correct import
 from app import models
 from app.database import SessionLocal
 
+
 # ✅ Load environment variables
 load_dotenv()
 
@@ -64,3 +65,6 @@ def get_results(analysis_id: int, db: Session = Depends(get_db)):
     if not results:
         return {"message": "No results found for this analysis ID"}
     return results  # Return filtered results 
+@app.get("/")
+def health():
+    return {"status": "Backend is alive!"}
