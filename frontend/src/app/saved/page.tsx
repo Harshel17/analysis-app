@@ -4,7 +4,8 @@ import Papa from "papaparse";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import styles from './saved.module.css';
-import config from '../../../utils/config';
+import config from '@/utils/config';
+
  // or correct relative path
 
 
@@ -162,4 +163,4 @@ export default function SavedAnalysisPage() {
 </div>
 
     );
-    
+}

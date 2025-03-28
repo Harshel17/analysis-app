@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import styles from './result.module.css';
-import config from '../../../utils/config';
+import config from '@/utils/config';
+
  // or correct relative path
 
 

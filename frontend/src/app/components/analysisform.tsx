@@ -1,6 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import config from '../../../utils/config';
+import config from '@/utils/config';
+
+
  // or correct relative path
 
 
