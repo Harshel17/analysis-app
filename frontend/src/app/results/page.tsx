@@ -26,7 +26,8 @@ export default function ResultsPage() {
         }
     }, [analysisId]);
 
-    const fetchResults = async (id) => {
+    const fetchResults = async (id: string) => {
+
         if (!id) return;
         try {
             setError(null);
