@@ -14,7 +14,8 @@ export default function ResultsPage() {
 
     const [results, setResults] = useState([]);
     const [analysisData, setAnalysisData] = useState(null);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
+
     const [isEditing, setIsEditing] = useState(false);
     const [updatedParameters, setUpdatedParameters] = useState({});
     const [isSaving, setIsSaving] = useState(false);
