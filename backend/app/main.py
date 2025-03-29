@@ -26,7 +26,7 @@ origins = [
 # ✅ CORS Middleware (Avoid duplicate calls)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust based on your frontend
+    allow_origins=origins,  # Adjust based on your frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
