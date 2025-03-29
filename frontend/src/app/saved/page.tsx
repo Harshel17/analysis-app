@@ -16,11 +16,24 @@ type ResultRow = {
     ending_balance: number;
   };
   
+  interface AnalysisData {
+    description: string;
+    principal: number;
+    interest_week: number;
+    projection_period: number;
+    tax_rate: number;
+    additional_deposit: number;
+    deposit_frequency: number;
+    regular_withdrawal: number;
+    withdrawal_frequency: number;
+  }
+  
 export default function SavedAnalysisPage() {
     const [searchId, setSearchId] = useState("");
     const [results, setResults] = useState<ResultRow[]>([]);
 
-    const [analysisData, setAnalysisData] = useState(null);
+    const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
+
     const [error, setError] = useState<string | null>(null);
 
     // ✅ Fetch Analysis Parameters & Results
