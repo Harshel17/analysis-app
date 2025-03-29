@@ -44,7 +44,7 @@ export default function ResultsPage() {
             if (!resultsResponse.ok) throw new Error("Failed to fetch results");
             const resultsData = await resultsResponse.json();
             setResults(resultsData);
-        } catch (error) {
+        } catch (error: unknown) {
             const err = error as Error;
             console.error("Error fetching data:", err);
             setError(err.message);
@@ -62,7 +62,7 @@ export default function ResultsPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updatedParameters),
             });
-    
+
             if (!response.ok) throw new Error("Failed to update parameters");
     
             const data = await response.json(); // ✅ Add this line
@@ -79,8 +79,9 @@ export default function ResultsPage() {
             setResults(refreshed);
             alert("✅ Updates saved successfully!");
         } catch (error) {
-            console.error("Error updating data:", error);
-            setError("Failed to save updates.");
+            const err = error as Error;
+            console.error("error updating data:", err);
+            setError(err.message);
         }
         setIsSaving(false);
     };
@@ -97,9 +98,10 @@ export default function ResultsPage() {
 
             await response.json();
             alert("✅ Successfully moved to permanent table!");
-        } catch (error) {
-            console.error("Error moving data:", error);
-            alert("❌ Failed to move to permanent table.");
+        } catch (error: unknown) {
+            const err = error as Error;
+            console.error("Error fetching data:", err);
+            setError(err.message);
         }
         setIsMovingToPermanent(false);
     };
