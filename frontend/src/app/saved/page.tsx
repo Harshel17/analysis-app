@@ -6,9 +6,20 @@ import autoTable from "jspdf-autotable";
 import styles from './saved.module.css';
 import config from '@/utils/config';
 
+type ResultRow = {
+    week: number;
+    beginning_balance: number;
+    additional_deposit: number;
+    interest: number;
+    profit: number;
+    withdrawal: number;
+    ending_balance: number;
+  };
+  
 export default function SavedAnalysisPage() {
     const [searchId, setSearchId] = useState("");
-    const [results, setResults] = useState([]);
+    const [results, setResults] = useState<ResultRow[]>([]);
+
     const [analysisData, setAnalysisData] = useState(null);
     const [error, setError] = useState<string | null>(null);
 
