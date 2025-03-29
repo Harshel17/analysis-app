@@ -6,46 +6,40 @@ from app.models import AnalysisParameter, AnalysisResult
 from app.schemas import AnalysisCreate
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-import os  # ✅ Correct import
+import os
 from app import models
-from app.database import SessionLocal
 
-
-# ✅ Load environment variables
+# Load environment variables
 load_dotenv()
 
-# ✅ Define FastAPI app
+# Define FastAPI app
 app = FastAPI()
-import logging
-logging.warning("App started successfully")
 
+# CORS setup
 origins = [
-    "https://analysis-app-29on.onrender.com",  # ✅ your frontend domain
+    "https://analysis-app-29on.onrender.com",  # your deployed frontend
 ]
 
-# ✅ CORS Middleware (Avoid duplicate calls)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Adjust based on your frontend
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ✅ Ensure tables are created
+# Create tables
 models.Base.metadata.create_all(bind=engine)
 
-# ✅ Include Routers (Ensure this is AFTER app initialization)
+# Include routers
 app.include_router(analysis.router, prefix="/api")
 
+# Health check route (keep only one)
 @app.get("/")
-def home():
-    return {"message": "API is working!"}
-@app.get("/")
-def read_root():
-    return {"message": "API is working!"}
+def health():
+    return {"status": "Backend is alive!"}
 
-# ✅ Dependency for DB session
+# Database session dependency
 def get_db():
     db = SessionLocal()
     try:
@@ -53,30 +47,27 @@ def get_db():
     finally:
         db.close()
 
+# DB health check
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
-    """ Check if the database connection is alive """
     return {"status": "Database is connected"}
 
+# API route to create new analysis
 @app.post("/api/analysis/")
 def create_analysis(analysis: AnalysisCreate, db: Session = Depends(get_db)):
-    """ Create a new analysis and return its unique ID """
-    new_analysis = AnalysisParameter(**analysis.dict())  # Create new entry
-    db.add(new_analysis)  # Add to database
-    db.commit()  # Save changes
-    db.refresh(new_analysis)  # Refresh object to get new ID
-    return {"analysis_id": new_analysis.id}  # Return only the analysis ID
+    new_analysis = AnalysisParameter(**analysis.dict())
+    db.add(new_analysis)
+    db.commit()
+    db.refresh(new_analysis)
+    return {"analysis_id": new_analysis.id}
 
+# API route to fetch results
 @app.get("/api/results/{analysis_id}")
 def get_results(analysis_id: int, db: Session = Depends(get_db)):
-    """ Fetch results based on the given unique analysis_id """
     results = db.query(AnalysisResult).filter(AnalysisResult.analysis_id == analysis_id).all()
     if not results:
         return {"message": "No results found for this analysis ID"}
-    return results  # Return filtered results 
-@app.get("/")
-def health():
-    return {"status": "Backend is alive!"}
+    return results
 
 if __name__ == "__main__":
     import uvicorn
