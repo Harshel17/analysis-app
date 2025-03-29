@@ -82,7 +82,7 @@ export default function ResultsPage() {
     
             console.log("Move to permanent response:", data);
     
-            setAnalysisData(updatedParameters);
+            setAnalysisData(data);
             setIsEditing(false);
     
             const updatedResults = await fetch(`${config}/api/results/${analysisId}`);
