@@ -5,7 +5,18 @@ import styles from './result.module.css';
 import config from '@/utils/config';
 
  // or correct relative path
-
+ type Analysis = {
+    description: string;
+    principal: number;
+    interest_week: number;
+    projection_period: number;
+    tax_rate: number;
+    additional_deposit: number;
+    deposit_frequency: number;
+    regular_withdrawal: number;
+    withdrawal_frequency: number;
+  };
+  
 
 export default function ResultsPage() {
     const searchParams = useSearchParams();
@@ -13,12 +24,14 @@ export default function ResultsPage() {
     const analysisId = searchParams.get("id");
 
     const [results, setResults] = useState([]);
-    const [analysisData, setAnalysisData] = useState<any>(null);
+    const [analysisData, setAnalysisData] = useState<Analysis | null>(null);
+
 
     const [error, setError] = useState<string | null>(null);
 
     const [isEditing, setIsEditing] = useState(false);
-    const [updatedParameters, setUpdatedParameters] = useState({});
+    const [updatedParameters, setUpdatedParameters] = useState<Partial<Analysis>>({});
+
     const [isSaving, setIsSaving] = useState(false);
     const [isMovingToPermanent, setIsMovingToPermanent] = useState(false);
 
