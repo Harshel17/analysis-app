@@ -19,6 +19,9 @@ app = FastAPI()
 import logging
 logging.warning("App started successfully")
 
+origins = [
+    "https://analysis-app-29on.onrender.com",  # ✅ your frontend domain
+]
 
 # ✅ CORS Middleware (Avoid duplicate calls)
 app.add_middleware(
