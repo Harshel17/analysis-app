@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import styles from './result.module.css'; // adjust if needed
+import styles from '../result.module.css'; // adjust if needed
 import config from '@/utils/config';
 
 type Analysis = {
