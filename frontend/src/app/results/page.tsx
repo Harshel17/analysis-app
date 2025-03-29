@@ -32,6 +32,8 @@ import config from '@/utils/config';
   
 
 export default function ResultsPage() {
+    if (typeof window === "undefined") return null;
+    
     const searchParams = useSearchParams();
     const router = useRouter();
     const analysisId = searchParams.get("id");
