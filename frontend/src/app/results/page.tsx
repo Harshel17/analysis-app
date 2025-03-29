@@ -16,6 +16,17 @@ import config from '@/utils/config';
     regular_withdrawal: number;
     withdrawal_frequency: number;
   };
+
+  type ResultRow = {
+    week: number;
+    beginning_balance: number;
+    additional_deposit: number;
+    interest: number;
+    profit: number;
+    withdrawal: number;
+    ending_balance: number;
+  };
+  
   
 
 export default function ResultsPage() {
@@ -23,7 +34,8 @@ export default function ResultsPage() {
     const router = useRouter();
     const analysisId = searchParams.get("id");
 
-    const [results, setResults] = useState([]);
+    const [results, setResults] = useState<ResultRow[]>([]);
+
     const [analysisData, setAnalysisData] = useState<Analysis | null>(null);
 
 
