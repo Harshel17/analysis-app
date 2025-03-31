@@ -22,7 +22,8 @@ origins = [
      "http://localhost:3000", 
      "http://analysis-app-1kw1-git-main-harshels-projects.vercel.app",
      "http://analysis-app-1kw1-jx6o9j48i-harshels-projects.vercel.app",
-     "https://analysis-app-1-3vkb.onrender.com"
+     "https://analysis-app-1-3vkb.onrender.com",
+     "https://analysis-app-jswa.vercel.app"
      # ✅ local dev (optional)
 ]
 app.add_middleware(
