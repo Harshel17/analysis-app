@@ -17,11 +17,13 @@ app = FastAPI()
 
 # CORS setup
 origins = [
-     "https://analysis-app-1kw1.vercel.app",  # ✅ your deployed frontend
+     "https://analysis-app-1kw1.vercel.app",
+     "https://analysis-app-1-3vkb.onrender.com"# ✅ your deployed frontend
      "http://localhost:3000", 
      "http://analysis-app-1kw1-git-main-harshels-projects.vercel.app",
      "http://analysis-app-1kw1-jx6o9j48i-harshels-projects.vercel.app",
-     "https://analysis-app-1-3vkb.onrender.com"# ✅ local dev (optional)
+     "https://analysis-app-1-3vkb.onrender.com"
+     # ✅ local dev (optional)
 ]
 app.add_middleware(
     CORSMiddleware,
