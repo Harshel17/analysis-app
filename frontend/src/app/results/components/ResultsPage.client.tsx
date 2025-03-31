@@ -40,7 +40,6 @@ export default function ResultsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isMovingToPermanent, setIsMovingToPermanent] = useState(false);
   
-
   useEffect(() => {
     if (analysisId) {
       fetchResults(analysisId);
@@ -50,14 +49,13 @@ export default function ResultsPage() {
   const fetchResults = async (id: string) => {
     try {
       setError(null);
-      console.log("🔁 Fetching:", `${config}/api/analysis/${id}`);
-      const analysisResponse = await fetch(`${config}/api/analysis/${id}`);
+      const analysisResponse = await fetch(`${config}/analysis/${id}`);
       if (!analysisResponse.ok) throw new Error("Failed to fetch analysis details");
       const analysisData = await analysisResponse.json();
       setAnalysisData(analysisData);
       setUpdatedParameters({ ...analysisData });
 
-      const resultsResponse = await fetch(`${config}/api/results/${id}`);
+      const resultsResponse = await fetch(`${config}/results/${id}`);
       if (!resultsResponse.ok) throw new Error("Failed to fetch results");
       const resultsData = await resultsResponse.json();
       setResults(resultsData);
@@ -73,7 +71,7 @@ export default function ResultsPage() {
     try {
       setError(null);
 
-      const response = await fetch(`${config}/api/update-analysis/${analysisId}`, {
+      const response = await fetch(`${config}/update-analysis/${analysisId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedParameters),
@@ -85,7 +83,7 @@ export default function ResultsPage() {
       setAnalysisData(data);
       setIsEditing(false);
 
-      const updatedResults = await fetch(`${config}/api/results/${analysisId}`);
+      const updatedResults = await fetch(`${config}/results/${analysisId}`);
       if (!updatedResults.ok) throw new Error("Failed to fetch updated results");
 
       const refreshed = await updatedResults.json();
@@ -101,7 +99,7 @@ export default function ResultsPage() {
   const handleMoveToPermanent = async () => {
     setIsMovingToPermanent(true);
     try {
-      const response = await fetch(`${config}/api/move-to-permanent/${analysisId}`, {
+      const response = await fetch(`${config}/move-to-permanent/${analysisId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
@@ -144,131 +142,130 @@ export default function ResultsPage() {
             <p><strong>Analysis ID:</strong> {analysisId}</p>
             <p><strong>Description:</strong> {analysisData.description}</p>
             <p><strong>Principal:</strong> 
-  {analysisData?.principal !== undefined 
-    ? analysisData.principal.toFixed(2) 
-    : "Loading..."}
-</p>
-
+              {analysisData?.principal !== undefined 
+                ? analysisData.principal.toFixed(2) 
+                : "Loading..."}
+            </p>
             <p><strong>Projection Period:</strong> {analysisData.projection_period} weeks</p>
+
             <p><strong>Additional Deposit:</strong>
-  {isEditing ? (
-    <input
-      type="number"
-      value={updatedParameters.additional_deposit}
-      onChange={(e) =>
-        setUpdatedParameters(prev => ({
-          ...prev,
-          additional_deposit: parseFloat(e.target.value) || 0
-        }))
-      }
-      className={styles.editInput}
-    />
-  ) : (
-    analysisData?.additional_deposit !== undefined
-      ? `$${analysisData.additional_deposit.toFixed(2)}`
-      : "Loading..."
-  )}
-</p>
+              {isEditing ? (
+                <input
+                  type="number"
+                  value={updatedParameters.additional_deposit}
+                  onChange={(e) =>
+                    setUpdatedParameters(prev => ({
+                      ...prev,
+                      additional_deposit: parseFloat(e.target.value) || 0
+                    }))
+                  }
+                  className={styles.editInput}
+                />
+              ) : (
+                analysisData?.additional_deposit !== undefined
+                  ? `$${analysisData.additional_deposit.toFixed(2)}`
+                  : "Loading..."
+              )}
+            </p>
 
-<p><strong>Interest Per Week:</strong>
-  {isEditing ? (
-    <input
-      type="number"
-      value={updatedParameters.interest_week}
-      onChange={(e) => setUpdatedParameters(prev => ({
-        ...prev,
-        interest_week: parseFloat(e.target.value) || 0
-      }))}
-      className={styles.editInput}
-    />
-  ) : (
-    analysisData?.interest_week !== undefined
-      ? `${analysisData.interest_week.toFixed(2)}%`
-      : "Loading..."
-  )}
-</p>
+            <p><strong>Interest Per Week:</strong>
+              {isEditing ? (
+                <input
+                  type="number"
+                  value={updatedParameters.interest_week}
+                  onChange={(e) => setUpdatedParameters(prev => ({
+                    ...prev,
+                    interest_week: parseFloat(e.target.value) || 0
+                  }))}
+                  className={styles.editInput}
+                />
+              ) : (
+                analysisData?.interest_week !== undefined
+                  ? `${analysisData.interest_week.toFixed(2)}%`
+                  : "Loading..."
+              )}
+            </p>
 
-<p><strong>Regular Withdrawal:</strong>
-  {isEditing ? (
-    <input
-      type="number"
-      value={updatedParameters.regular_withdrawal}
-      onChange={(e) => setUpdatedParameters(prev => ({
-        ...prev,
-        regular_withdrawal: parseFloat(e.target.value) || 0
-      }))}
-      className={styles.editInput}
-    />
-  ) : (
-    analysisData?.regular_withdrawal !== undefined
-      ? `$${analysisData.regular_withdrawal.toFixed(2)}`
-      : "Loading..."
-  )}
-</p>
-</div>
+            <p><strong>Regular Withdrawal:</strong>
+              {isEditing ? (
+                <input
+                  type="number"
+                  value={updatedParameters.regular_withdrawal}
+                  onChange={(e) => setUpdatedParameters(prev => ({
+                    ...prev,
+                    regular_withdrawal: parseFloat(e.target.value) || 0
+                  }))}
+                  className={styles.editInput}
+                />
+              ) : (
+                analysisData?.regular_withdrawal !== undefined
+                  ? `$${analysisData.regular_withdrawal.toFixed(2)}`
+                  : "Loading..."
+              )}
+            </p>
+          </div>
 
-{isEditing && (
-  <button
-    onClick={handleSaveUpdates}
-    className={styles.saveButton}
-    disabled={isSaving}
-  >
-    {isSaving ? "Saving..." : "Save Changes"}
-  </button>
-)}
-</div>
-)}
+          {isEditing && (
+            <button
+              onClick={handleSaveUpdates}
+              className={styles.saveButton}
+              disabled={isSaving}
+            >
+              {isSaving ? "Saving..." : "Save Changes"}
+            </button>
+          )}
+        </div>
+      )}
 
-{results.length > 0 && (
-  <div className={styles.actions}>
-    <button
-      onClick={handleMoveToPermanent}
-      className={styles.permanentButton}
-      disabled={isMovingToPermanent}
-    >
-      {isMovingToPermanent ? "Saving..." : "Save to Permanent Table"}
-    </button>
+      {results.length > 0 && (
+        <div className={styles.actions}>
+          <button
+            onClick={handleMoveToPermanent}
+            className={styles.permanentButton}
+            disabled={isMovingToPermanent}
+          >
+            {isMovingToPermanent ? "Saving..." : "Save to Permanent Table"}
+          </button>
 
-    <button
-      onClick={() => router.push("/saved")}
-      className={styles.viewSavedButton}
-    >
-      View Saved Tables
-    </button>
-  </div>
-)}
+          <button
+            onClick={() => router.push("/saved")}
+            className={styles.viewSavedButton}
+          >
+            View Saved Tables
+          </button>
+        </div>
+      )}
 
-{results.length > 0 && (
-  <div className={styles.tableContainer}>
-    <table className={styles.table}>
-      <thead>
-        <tr>
-          <th>Week</th>
-          <th>Beginning Balance</th>
-          <th>Additional Deposit</th>
-          <th>Interest</th>
-          <th>Profit</th>
-          <th>Withdrawal</th>
-          <th>Ending Balance</th>
-        </tr>
-      </thead>
-      <tbody>
-        {results.map((result, index) => (
-          <tr key={index}>
-            <td>{result.week}</td>
-            <td>${result.beginning_balance?.toFixed(2) || "0.00"}</td>
-            <td>${result.additional_deposit?.toFixed(2) || "0.00"}</td>
-            <td>${result.interest?.toFixed(2) || "0.00"}</td>
-            <td>${result.profit?.toFixed(2) || "0.00"}</td>
-            <td>${result.withdrawal?.toFixed(2) || "0.00"}</td>
-            <td>${result.ending_balance?.toFixed(2) || "0.00"}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-)}
-</div>
-
+      {results.length > 0 && (
+        <div className={styles.tableContainer}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Week</th>
+                <th>Beginning Balance</th>
+                <th>Additional Deposit</th>
+                <th>Interest</th>
+                <th>Profit</th>
+                <th>Withdrawal</th>
+                <th>Ending Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {results.map((result, index) => (
+                <tr key={index}>
+                  <td>{result.week}</td>
+                  <td>${result.beginning_balance?.toFixed(2) || "0.00"}</td>
+                  <td>${result.additional_deposit?.toFixed(2) || "0.00"}</td>
+                  <td>${result.interest?.toFixed(2) || "0.00"}</td>
+                  <td>${result.profit?.toFixed(2) || "0.00"}</td>
+                  <td>${result.withdrawal?.toFixed(2) || "0.00"}</td>
+                  <td>${result.ending_balance?.toFixed(2) || "0.00"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
