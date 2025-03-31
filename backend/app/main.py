@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request
 from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine
 from app.routers import analysis
@@ -17,9 +17,12 @@ app = FastAPI()
 
 # CORS setup
 origins = [
-    "https://analysis-app-29on.onrender.com",  # your deployed frontend
+     "https://analysis-app-1kw1.vercel.app",  # ✅ your deployed frontend
+     "http://localhost:3000", 
+     "http://analysis-app-1kw1-git-main-harshels-projects.vercel.app",
+     "http://analysis-app-1kw1-jx6o9j48i-harshels-projects.vercel.app",
+     "https://analysis-app-1-3vkb.onrender.com"# ✅ local dev (optional)
 ]
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -73,3 +76,10 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run("app.main:app", host="0.0.0.0", port=port)
+@app.get("/test")
+def test():
+    return {"message": "Backend is alive!"}
+@app.middleware("http")
+async def log_origin(request: Request, call_next):
+    print("🛰️ Request from:", request.headers.get("origin"))
+    return await call_next(request)

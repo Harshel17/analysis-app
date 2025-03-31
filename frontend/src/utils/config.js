@@ -1,2 +1,3 @@
-const BASE_URL = "https://analysis-app-1-3vbk.onrender.com"; 
-export default BASE_URL;
+const config = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+export default config;

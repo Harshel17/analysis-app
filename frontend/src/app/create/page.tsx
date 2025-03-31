@@ -49,7 +49,8 @@ export default function CreateAnalysis() {
             tax_rate: parseFloat(formData.tax_rate) || 0,
         };
     
-        console.log("Submitting Data:", formattedData);  // ✅ Debugging Log
+        console.log("➡️ Sending to:", `${config}/api/analysis/`);
+        console.log("➡️ Payload:", formattedData); // ✅ Debugging Log
     
         try {
             const response = await fetch(`${config}/api/analysis/`, {

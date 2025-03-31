@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Start the FastAPI app using Uvicorn
-#!/bin/bash
-uvicorn app.main:app --host 0.0.0.0 --port $PORT
+# Navigate into the backend directory
+cd "$(dirname "$0")"
 
+# Start the FastAPI app
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
