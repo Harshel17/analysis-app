@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import styles from '../result.module.css'; // adjust if needed
 import config from '@/utils/config';
+import { getUsernameFromToken } from '@/utils/auth';
+import Navbar from "@/app/components/navbar";
 
 type Analysis = {
   description: string;
@@ -39,12 +41,28 @@ export default function ResultsPage() {
   const [updatedParameters, setUpdatedParameters] = useState<Partial<Analysis>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isMovingToPermanent, setIsMovingToPermanent] = useState(false);
-  
+
+  const [username, setUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    const name = getUsernameFromToken();
+    if (name) setUsername(name);
+  }, []);
+
   useEffect(() => {
     if (analysisId) {
       fetchResults(analysisId);
     }
   }, [analysisId]);
+
+  const formatCurrency = (value: number | undefined): string => {
+    if (typeof value !== "number") return "$0.00";
+    return value.toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+    });
+  };
 
   const fetchResults = async (id: string) => {
     try {
@@ -118,6 +136,7 @@ export default function ResultsPage() {
 
   return (
     <div className={styles.container}>
+      <Navbar />
       <h2 className={styles.title}>Analysis Results</h2>
 
       {error && (
@@ -125,6 +144,8 @@ export default function ResultsPage() {
           ❌ {error}
         </div>
       )}
+
+
 
       {analysisData && (
         <div className={styles.parametersBox}>
@@ -139,71 +160,159 @@ export default function ResultsPage() {
           </h3>
 
           <div className={styles.parametersGrid}>
-            <p><strong>Analysis ID:</strong> {analysisId}</p>
-            <p><strong>Description:</strong> {analysisData.description}</p>
-            <p><strong>Principal:</strong> 
-              {analysisData?.principal !== undefined 
-                ? analysisData.principal.toFixed(2) 
-                : "Loading..."}
-            </p>
-            <p><strong>Projection Period:</strong> {analysisData.projection_period} weeks</p>
+  <p><strong>Analysis ID:</strong> {analysisId}</p>
 
-            <p><strong>Additional Deposit:</strong>
-              {isEditing ? (
-                <input
-                  type="number"
-                  value={updatedParameters.additional_deposit}
-                  onChange={(e) =>
-                    setUpdatedParameters(prev => ({
-                      ...prev,
-                      additional_deposit: parseFloat(e.target.value) || 0
-                    }))
-                  }
-                  className={styles.editInput}
-                />
-              ) : (
-                analysisData?.additional_deposit !== undefined
-                  ? `$${analysisData.additional_deposit.toFixed(2)}`
-                  : "Loading..."
-              )}
-            </p>
+  <p><strong>Description:</strong>
+    {isEditing ? (
+      <input
+        type="text"
+        value={updatedParameters.description}
+        onChange={(e) => setUpdatedParameters(prev => ({
+          ...prev,
+          description: e.target.value
+        }))}
+        className={styles.editInput}
+      />
+    ) : (
+      analysisData.description
+    )}
+  </p>
 
-            <p><strong>Interest Per Week:</strong>
-              {isEditing ? (
-                <input
-                  type="number"
-                  value={updatedParameters.interest_week}
-                  onChange={(e) => setUpdatedParameters(prev => ({
-                    ...prev,
-                    interest_week: parseFloat(e.target.value) || 0
-                  }))}
-                  className={styles.editInput}
-                />
-              ) : (
-                analysisData?.interest_week !== undefined
-                  ? `${analysisData.interest_week.toFixed(2)}%`
-                  : "Loading..."
-              )}
-            </p>
+  <p><strong>Principal:</strong>
+    {isEditing ? (
+      <input
+        type="number"
+        value={updatedParameters.principal}
+        onChange={(e) => setUpdatedParameters(prev => ({
+          ...prev,
+          principal: parseFloat(e.target.value) || 0
+        }))}
+        className={styles.editInput}
+      />
+    ) : (
+      analysisData?.principal?.toFixed(2) || "Loading..."
+    )}
+  </p>
 
-            <p><strong>Regular Withdrawal:</strong>
-              {isEditing ? (
-                <input
-                  type="number"
-                  value={updatedParameters.regular_withdrawal}
-                  onChange={(e) => setUpdatedParameters(prev => ({
-                    ...prev,
-                    regular_withdrawal: parseFloat(e.target.value) || 0
-                  }))}
-                  className={styles.editInput}
-                />
-              ) : (
-                analysisData?.regular_withdrawal !== undefined
-                  ? `$${analysisData.regular_withdrawal.toFixed(2)}`
-                  : "Loading..."
-              )}
-            </p>
-          </div>
+  <p><strong>Projection Period:</strong>
+    {isEditing ? (
+      <input
+        type="number"
+        value={updatedParameters.projection_period}
+        onChange={(e) => setUpdatedParameters(prev => ({
+          ...prev,
+          projection_period: parseInt(e.target.value) || 1
+        }))}
+        className={styles.editInput}
+      />
+    ) : (
+      `${analysisData.projection_period} weeks`
+    )}
+  </p>
+
+  <p><strong>Tax Rate:</strong>
+    {isEditing ? (
+      <input
+        type="number"
+        value={updatedParameters.tax_rate}
+        onChange={(e) => setUpdatedParameters(prev => ({
+          ...prev,
+          tax_rate: parseFloat(e.target.value) || 0
+        }))}
+        className={styles.editInput}
+      />
+    ) : (
+      analysisData?.tax_rate?.toFixed(2) + "%" || "Loading..."
+    )}
+  </p>
+
+  <p>
+  <strong>Additional Deposit:</strong>
+  {isEditing ? (
+    <input
+      type="number"
+      value={updatedParameters.additional_deposit ?? ""}
+      onChange={(e) =>
+        setUpdatedParameters((prev) => ({
+          ...prev,
+          additional_deposit: parseFloat(e.target.value) || 0,
+        }))
+      }
+      className={styles.editInput}
+    />
+  ) : (
+    analysisData?.additional_deposit !== undefined
+      ? `$${analysisData.additional_deposit.toFixed(2)}`
+      : "Loading..."
+  )}
+</p>
+
+
+  <p><strong>Interest Per Week:</strong>
+    {isEditing ? (
+      <input
+        type="number"
+        value={updatedParameters.interest_week}
+        onChange={(e) => setUpdatedParameters(prev => ({
+          ...prev,
+          interest_week: parseFloat(e.target.value) || 0
+        }))}
+        className={styles.editInput}
+      />
+    ) : (
+      `${analysisData.interest_week.toFixed(2)}%`
+    )}
+  </p>
+
+  <p><strong>Deposit Frequency (weeks):</strong>
+    {isEditing ? (
+      <input
+        type="number"
+        value={updatedParameters.deposit_frequency}
+        onChange={(e) => setUpdatedParameters(prev => ({
+          ...prev,
+          deposit_frequency: parseInt(e.target.value) || 1
+        }))}
+        className={styles.editInput}
+      />
+    ) : (
+      `${analysisData.deposit_frequency}`
+    )}
+  </p>
+
+  <p><strong>Regular Withdrawal:</strong>
+    {isEditing ? (
+      <input
+        type="number"
+        value={updatedParameters.regular_withdrawal}
+        onChange={(e) => setUpdatedParameters(prev => ({
+          ...prev,
+          regular_withdrawal: parseFloat(e.target.value) || 0
+        }))}
+        className={styles.editInput}
+      />
+    ) : (
+      `$${analysisData.regular_withdrawal.toFixed(2)}`
+    )}
+  </p>
+
+  <p><strong>Withdrawal Frequency (weeks):</strong>
+    {isEditing ? (
+      <input
+        type="number"
+        value={updatedParameters.withdrawal_frequency}
+        onChange={(e) => setUpdatedParameters(prev => ({
+          ...prev,
+          withdrawal_frequency: parseInt(e.target.value) || 1
+        }))}
+        className={styles.editInput}
+      />
+    ) : (
+      `${analysisData.withdrawal_frequency}`
+    )}
+  </p>
+</div>
+
 
           {isEditing && (
             <button
@@ -254,18 +363,34 @@ export default function ResultsPage() {
               {results.map((result, index) => (
                 <tr key={index}>
                   <td>{result.week}</td>
-                  <td>${result.beginning_balance?.toFixed(2) || "0.00"}</td>
-                  <td>${result.additional_deposit?.toFixed(2) || "0.00"}</td>
-                  <td>${result.interest?.toFixed(2) || "0.00"}</td>
-                  <td>${result.profit?.toFixed(2) || "0.00"}</td>
-                  <td>${result.withdrawal?.toFixed(2) || "0.00"}</td>
-                  <td>${result.ending_balance?.toFixed(2) || "0.00"}</td>
+                  <td className={styles.right}>{formatCurrency(result.beginning_balance)}</td>
+                  <td className={styles.right}>{formatCurrency(result.additional_deposit)}</td>
+                  <td className={styles.right}>{formatCurrency(result.interest)}</td>
+                  <td className={styles.right}>{formatCurrency(result.profit)}</td>
+                  <td className={styles.right}>{formatCurrency(result.withdrawal)}</td>
+                  <td className={styles.right}>{formatCurrency(result.ending_balance)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
+      {/* ✅ Return to Previous Page Button */}
+<div style={{ display: "flex", justifyContent: "center", marginTop: "2rem" }}>
+  <button
+    onClick={() => router.back()}
+    style={{
+      padding: "0.5rem 1rem",
+      backgroundColor: "#e5e7eb",
+      borderRadius: "6px",
+      fontWeight: 500,
+      cursor: "pointer"
+    }}
+  >
+    ← Return to Previous Page
+  </button>
+</div>
+
     </div>
   );
 }

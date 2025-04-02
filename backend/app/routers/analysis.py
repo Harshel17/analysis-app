@@ -5,6 +5,9 @@ from app import models, schemas
 from typing import List
 import logging
 from pydantic import BaseModel
+from app.utils.auth_utils import get_current_user
+from app.models import User
+from app.schemas import AnalysisCreate
 
 # ✅ Define Router
 router = APIRouter()
@@ -15,46 +18,32 @@ logger = logging.getLogger(__name__)
 
 # ✅ UPDATE Analysis Parameters (Editable fields)
 class UpdateAnalysisParams(BaseModel):
-    additional_deposit: float
+    description: str
+    principal: float
     interest_week: float
+    projection_period: int
+    tax_rate: float
+    additional_deposit: float
+    deposit_frequency: int
     regular_withdrawal: float
+    withdrawal_frequency: int
 
-@router.post("/update-analysis/{analysis_id}")
-async def update_analysis(analysis_id: int, params: UpdateAnalysisParams, db: Session = Depends(get_db)):
-    """ Update analysis parameters and regenerate results in staging. """
-    analysis = db.query(models.AnalysisParameter).filter(models.AnalysisParameter.id == analysis_id).first()
 
-    if not analysis:
-        raise HTTPException(status_code=404, detail="Analysis not found")
-
-    analysis.additional_deposit = params.additional_deposit
-    analysis.interest_week = params.interest_week
-    analysis.regular_withdrawal = params.regular_withdrawal
-
-    db.commit()
-    db.refresh(analysis)
-
-    save_analysis_results_to_staging(db, analysis_id, analysis)
-
-    logger.info(f"✅ Analysis {analysis_id} updated successfully")
-
-    return {"message": "Analysis updated successfully", "id": analysis.id}
-
-# ✅ CREATE Analysis with ID in Response
+# ✅ CREATE Analysis with user ID
 @router.post("/analysis/")
-def create_analysis(analysis: schemas.AnalysisCreate, db: Session = Depends(get_db)):
+def create_analysis(data: AnalysisCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     try:
-        logger.info(f"Creating analysis for: {analysis.description}")
-        print(f"Creating analysis for: {analysis.description}")
+        logger.info(f"Creating analysis for: {data.description} by user {current_user.id}")
+        print(f"Creating analysis for: {data.description}")
 
-        db_analysis = models.AnalysisParameter(**analysis.dict())
+        db_analysis = models.AnalysisParameter(**data.dict(), user_id=current_user.id)
         db.add(db_analysis)
         db.commit()
         db.refresh(db_analysis)
 
         print(f"✅ Analysis Created with ID: {db_analysis.id}")
         print("Calling save_analysis_results_to_staging now...")
-        save_analysis_results_to_staging(db, db_analysis.id, analysis)
+        save_analysis_results_to_staging(db, db_analysis.id, data)
         print("✅ Finished calling save_analysis_results_to_staging")
 
         logger.info(f"✅ Analysis Created with ID: {db_analysis.id}")
@@ -65,36 +54,90 @@ def create_analysis(analysis: schemas.AnalysisCreate, db: Session = Depends(get_
         print(f"🚨 Error creating analysis: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# ✅ GET Analysis by ID
-@router.get("/analysis/{analysis_id}", response_model=schemas.AnalysisCreate)
+@router.post("/update-analysis/{analysis_id}")
+async def update_analysis(analysis_id: int, params: UpdateAnalysisParams, db: Session = Depends(get_db)):
+    analysis = db.query(models.AnalysisParameter).filter(models.AnalysisParameter.id == analysis_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+
+    analysis.description = params.description
+    analysis.principal = params.principal
+    analysis.interest_week = params.interest_week
+    analysis.projection_period = params.projection_period
+    analysis.tax_rate = params.tax_rate
+    analysis.additional_deposit = params.additional_deposit
+    analysis.deposit_frequency = params.deposit_frequency
+    analysis.regular_withdrawal = params.regular_withdrawal
+    analysis.withdrawal_frequency = params.withdrawal_frequency
+
+
+    db.commit()
+    db.refresh(analysis)
+
+    updated_data = AnalysisCreate(
+        description=analysis.description,
+        principal=analysis.principal,
+        interest_week=analysis.interest_week,
+        projection_period=analysis.projection_period,
+        tax_rate=analysis.tax_rate,
+        additional_deposit=analysis.additional_deposit,
+        deposit_frequency=analysis.deposit_frequency,
+        regular_withdrawal=analysis.regular_withdrawal,
+        withdrawal_frequency=analysis.withdrawal_frequency,
+    )
+
+    save_analysis_results_to_staging(db, analysis_id, updated_data)
+    logger.info(f"✅ Analysis {analysis_id} updated successfully")
+
+    return {
+        "id": analysis.id,
+        "description": analysis.description,
+        "principal": analysis.principal,
+        "interest_week": analysis.interest_week,
+        "projection_period": analysis.projection_period,
+        "tax_rate": analysis.tax_rate,
+        "additional_deposit": analysis.additional_deposit,
+        "deposit_frequency": analysis.deposit_frequency,
+        "regular_withdrawal": analysis.regular_withdrawal,
+        "withdrawal_frequency": analysis.withdrawal_frequency,
+        "user_id": analysis.user_id
+    }
+
+@router.get("/analysis/{analysis_id}", response_model=schemas.AnalysisOut)
 def get_analysis_by_id(analysis_id: int, db: Session = Depends(get_db)):
     analysis = db.query(models.AnalysisParameter).filter(models.AnalysisParameter.id == analysis_id).first()
     if not analysis:
         raise HTTPException(status_code=404, detail="Analysis not found")
     return analysis
 
-# ✅ GET STAGING RESULTS
 @router.get("/results/{analysis_id}", response_model=List[schemas.AnalysisResultSchema])
 def get_results(analysis_id: int, db: Session = Depends(get_db)):
     results = db.query(models.StagingResult).filter(models.StagingResult.analysis_id == analysis_id).all()
-
     if not results:
         logger.warning(f"No results found in STAGING TABLE for analysis ID {analysis_id}")
         raise HTTPException(status_code=404, detail="No results found for this analysis in staging table")
-
     return results
 
-# ✅ GET PERMANENT RESULTS
 @router.get("/permanent-results/{analysis_id}", response_model=List[schemas.AnalysisResultSchema])
-def get_permanent_results(analysis_id: int, db: Session = Depends(get_db)):
-    results = db.query(models.AnalysisResult).filter(models.AnalysisResult.analysis_id == analysis_id).all()
+def get_permanent_results(analysis_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    analysis = db.query(models.AnalysisParameter).filter(models.AnalysisParameter.id == analysis_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
 
+    if not current_user.is_manager and analysis.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this analysis")
+
+    results = db.query(models.AnalysisResult).filter(models.AnalysisResult.analysis_id == analysis_id).all()
     if not results:
         raise HTTPException(status_code=404, detail="No saved results found for this analysis")
-
     return results
 
-# ✅ MOVE TO PERMANENT TABLE
+@router.get("/saved-analysis", response_model=List[schemas.AnalysisOut])
+def get_saved_analyses(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.is_manager:
+        return db.query(models.AnalysisParameter).all()
+    return db.query(models.AnalysisParameter).filter(models.AnalysisParameter.user_id == current_user.id).all()
+
 @router.post("/move-to-permanent/{analysis_id}")
 def move_to_permanent(analysis_id: int, db: Session = Depends(get_db)):
     try:
@@ -118,7 +161,6 @@ def move_to_permanent(analysis_id: int, db: Session = Depends(get_db)):
 
         db.bulk_save_objects(permanent_results)
         db.commit()
-
         db.query(models.StagingResult).filter(models.StagingResult.analysis_id == analysis_id).delete()
         db.commit()
 
@@ -130,7 +172,6 @@ def move_to_permanent(analysis_id: int, db: Session = Depends(get_db)):
         logger.error(f"🚨 Failed to move data: {str(e)}")
         return {"error": f"Failed to move data: {str(e)}"}
 
-# ✅ HELPER FUNCTION TO SAVE STAGING RESULTS
 def save_analysis_results_to_staging(db: Session, analysis_id: int, analysis: schemas.AnalysisCreate):
     try:
         print(f"🚀 Saving results to STAGING TABLE for analysis ID: {analysis_id}")
@@ -151,7 +192,6 @@ def save_analysis_results_to_staging(db: Session, analysis_id: int, analysis: sc
             tax_deduction = profit * (analysis.tax_rate / 100)
             additional_deposit = analysis.additional_deposit if week % analysis.deposit_frequency == 0 else 0
             withdrawal = analysis.regular_withdrawal if week % analysis.withdrawal_frequency == 0 else 0
-
             ending_balance = beginning_balance + additional_deposit + profit - withdrawal - tax_deduction
 
             print(f"Week {week}: Beginning: {beginning_balance}, Deposit: {additional_deposit}, Interest: {interest}, Withdrawal: {withdrawal}, Ending: {ending_balance}")
@@ -172,14 +212,12 @@ def save_analysis_results_to_staging(db: Session, analysis_id: int, analysis: sc
             beginning_balance = ending_balance
 
         print(f"✅ Attempting to save {len(results)} results to staging_results...")
-
         db.bulk_save_objects(results)
         db.flush()
         db.commit()
 
         staging_data = db.query(models.StagingResult).filter(models.StagingResult.analysis_id == analysis_id).all()
         print(f"DEBUG: Retrieved {len(staging_data)} records from STAGING TABLE")
-
         logger.info(f"✅ Successfully saved {len(results)} results to STAGING TABLE for analysis ID {analysis_id}")
 
     except Exception as e:

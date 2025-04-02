@@ -25,6 +25,24 @@ class AnalysisResultSchema(BaseModel):
     tax_deduction: float
     ending_balance: float
     generated_at: Optional[datetime]  # ✅ FIXED: Make it Optional
+    
+class AnalysisOut(BaseModel):
+    id: int
+    description: str
+    principal: float
+    interest_week: float
+    projection_period: int
+    tax_rate: float
+    additional_deposit: Optional[float]
+    deposit_frequency: Optional[int]
+    regular_withdrawal: Optional[float]
+    withdrawal_frequency: Optional[int]
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+    
 
     class Config:
         from_attributes = True
+
+
+

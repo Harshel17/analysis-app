@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 from app import models
-
+from app.routers import auth 
 # Load environment variables
 load_dotenv()
 
@@ -17,15 +17,15 @@ app = FastAPI()
 
 # CORS setup
 origins = [
-     "https://analysis-app-1kw1.vercel.app",
-     "https://analysis-app-1-3vkb.onrender.com"# ✅ your deployed frontend
-     "http://localhost:3000", 
-     "http://analysis-app-1kw1-git-main-harshels-projects.vercel.app",
-     "http://analysis-app-1kw1-jx6o9j48i-harshels-projects.vercel.app",
-     "https://analysis-app-1-3vkb.onrender.com",
-     "https://analysis-app-jswa.vercel.app"
-     # ✅ local dev (optional)
+    "https://analysis-app-1kw1.vercel.app",
+    "https://analysis-app-1-3vkb.onrender.com",  # ✅ your deployed frontend
+    "http://localhost:3000", 
+    "http://127.0.0.1:3000",
+    "http://analysis-app-1kw1-git-main-harshels-projects.vercel.app",
+    "http://analysis-app-1kw1-jx6o9j48i-harshels-projects.vercel.app",
+    "https://analysis-app-jswa.vercel.app"
 ]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -39,6 +39,7 @@ models.Base.metadata.create_all(bind=engine)
 
 # Include routers
 app.include_router(analysis.router, prefix="/api")
+app.include_router(auth.router, prefix="/api")
 
 # Health check route (keep only one)
 @app.get("/")
