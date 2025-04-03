@@ -1,0 +1,6 @@
+{
+  "/saved/page": "app/saved/page.js",
+  "/page": "app/page.js",
+  "/auth/login/page": "app/auth/login/page.js",
+  "/create/page": "app/create/page.js"
+}

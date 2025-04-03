@@ -1,0 +1,160 @@
+/*!**************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[5].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[5].use[3]!./src/app/saved/saved.module.css ***!
+  \**************************************************************************************************************************************************************************************************************************************************************************/
+/* saved.module.css */
+
+.saved_container__hhdFi {
+  padding: 2rem;
+  max-width: 80rem;
+  margin: auto;
+  background-color: white;
+  min-height: 100vh;
+  color: #1f2937; /* text-gray-800 */
+  font-family: Arial, sans-serif;
+}
+
+.saved_heading__uctZN {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #2563eb; /* blue-600 */
+  margin-bottom: 1.5rem;
+}
+
+.saved_searchBox__OcXiO {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  justify-content: center;
+}
+
+.saved_input__OITPI {
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  border-radius: 0.375rem;
+  max-width: 20rem;
+  width: 100%;
+}
+
+.saved_button___BQWz {
+  padding: 0.5rem 1rem;
+  background-color: #22c55e;
+  color: white;
+  font-weight: 600;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.saved_button___BQWz:hover {
+  background-color: #16a34a;
+}
+
+.saved_error__Qrng9 {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #fee2e2;
+  color: #dc2626;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 0.375rem;
+}
+
+.saved_analysisBox__XMVWP {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: #eff6ff;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.saved_analysisTitle__k_70I {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1e40af;
+  margin-bottom: 1rem;
+}
+
+.saved_grid__nEMrG {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.saved_exportButtons__kXMqz {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.saved_exportCSV__xVcvy {
+  background-color: #3b82f6;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+}
+
+.saved_exportCSV__xVcvy:hover {
+  background-color: #2563eb;
+}
+
+.saved_exportPDF__TWOQ9 {
+  background-color: #ef4444;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+}
+
+.saved_exportPDF__TWOQ9:hover {
+  background-color: #dc2626;
+}
+
+.saved_tableWrapper__SGpTk {
+  overflow-x: auto;
+}
+
+.saved_table__vq7KD {
+  width: 100%;
+  font-size: 0.875rem;
+  border-collapse: collapse;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.saved_table__vq7KD th,
+.saved_table__vq7KD td {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  text-align: center;
+}
+
+.saved_table__vq7KD thead {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.saved_table__vq7KD tbody tr:nth-child(odd) {
+  background-color: #f9fafb;
+}
+
+.saved_table__vq7KD tbody tr:nth-child(even) {
+  background-color: #ffffff;
+}
+
+.saved_greenText__qf01l {
+  color: #16a34a;
+}
+
+.saved_redText__Tm13i {
+  color: #dc2626;
+}
+
+.saved_blueText__S5HM7 {
+  color: #2563eb;
+}
+
+.saved_purpleText__5Rt_f {
+  color: #7c3aed;
+}
+
