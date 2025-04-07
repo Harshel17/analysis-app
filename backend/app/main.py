@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, Request
 from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine
 from app.routers import analysis
+from app.routers import manager
 from app.models import AnalysisParameter, AnalysisResult
 from app.schemas import AnalysisCreate
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,6 +41,8 @@ models.Base.metadata.create_all(bind=engine)
 # Include routers
 app.include_router(analysis.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
+app.include_router(analysis.router, prefix="/api/analysis", tags=["Analysis"])
+app.include_router(manager.router, prefix="/api/manager", tags=["Manager"])
 
 # Health check route (keep only one)
 @app.get("/")

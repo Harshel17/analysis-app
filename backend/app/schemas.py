@@ -3,6 +3,12 @@ from typing import Optional
 from datetime import datetime
 
 
+class UserOut(BaseModel):
+    id: int
+    username: str
+    email: str
+    is_manager: int
+
 class AnalysisCreate(BaseModel):
     description: str
     principal: float
@@ -39,8 +45,25 @@ class AnalysisOut(BaseModel):
     withdrawal_frequency: Optional[int]
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
-    
+    user: UserOut
 
+class AnalysisWithUserOut(BaseModel):
+    id: int
+    description: str
+    principal: float
+    interest_week: float
+    projection_period: int
+    tax_rate: float
+    additional_deposit: Optional[float]
+    deposit_frequency: Optional[int]
+    regular_withdrawal: Optional[float]
+    withdrawal_frequency: Optional[int]
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+    ending_balance: Optional[float]=None 
+    user: Optional[UserOut]
+     
+    
     class Config:
         from_attributes = True
 

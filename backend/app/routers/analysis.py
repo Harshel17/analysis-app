@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from app.utils.auth_utils import get_current_user
 from app.models import User
 from app.schemas import AnalysisCreate
+from ..oauth import get_current_user
 
 # ✅ Define Router
 router = APIRouter()
@@ -225,3 +226,16 @@ def save_analysis_results_to_staging(db: Session, analysis_id: int, analysis: sc
         logger.error(f"🚨 Error saving to STAGING TABLE: {str(e)}")
         print(f"🚨 Error saving to STAGING TABLE: {str(e)}")
         raise HTTPException(status_code=500, detail="Error saving to Staging Table")
+
+@router.get("/manager/all-analyses", response_model=List[schemas.AnalysisWithUserOut])
+def get_all_analyses_for_manager(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+
+):
+    if not current_user.is_manager:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    analyses = db.query(models.AnalysisParameter).all()
+    return analyses
+

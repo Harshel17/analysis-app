@@ -22,3 +22,16 @@ export const getUsernameFromToken = (): string | null => {
     return null;
   }
 };
+
+export const isManagerFromToken = (): boolean => {
+  const token = localStorage.getItem("token");
+  if (!token) return false;
+
+  try {
+    const decoded: DecodedToken = jwtDecode(token);
+    return decoded.is_manager === 1;
+  } catch (e) {
+    console.error("Token decode failed", e);
+    return false;
+  }
+};

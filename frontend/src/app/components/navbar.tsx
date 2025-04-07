@@ -2,14 +2,17 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { getUsernameFromToken } from "@/utils/auth";
+import { getUsernameFromToken, isManagerFromToken } from "@/utils/auth";
 
 export default function Navbar() {
   const [username, setUsername] = useState<string | null>(null);
+  const [isManager, setIsManager] = useState(false);
 
   useEffect(() => {
     const name = getUsernameFromToken();
+    const managerStatus = isManagerFromToken();
     setUsername(name);
+    setIsManager(managerStatus);
   }, []);
 
   return (
@@ -20,7 +23,7 @@ export default function Navbar() {
         padding: "1rem 2rem",
         display: "flex",
         justifyContent: "space-between",
-        alignItems: "flex-start", // align top
+        alignItems: "flex-start",
         position: "sticky",
         top: 0,
         zIndex: 50,
@@ -35,6 +38,11 @@ export default function Navbar() {
           <Link href="/" style={{ color: "#fff", textDecoration: "none" }}>Home</Link>
           <Link href="/create" style={{ color: "#fff", textDecoration: "none" }}>Create</Link>
           <Link href="/saved" style={{ color: "#fff", textDecoration: "none" }}>Saved</Link>
+          {isManager && (
+            <Link href="/manager" style={{ color: "#22c55e", textDecoration: "none" }}>
+              Manager Dashboard
+            </Link>
+          )}
         </div>
       </div>
 
