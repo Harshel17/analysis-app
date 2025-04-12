@@ -38,10 +38,19 @@ export default function Navbar() {
           <Link href="/" style={{ color: "#fff", textDecoration: "none" }}>Home</Link>
           <Link href="/create" style={{ color: "#fff", textDecoration: "none" }}>Create</Link>
           <Link href="/saved" style={{ color: "#fff", textDecoration: "none" }}>Saved</Link>
+
           {isManager && (
-            <Link href="/manager" style={{ color: "#22c55e", textDecoration: "none" }}>
-              Manager Dashboard
-            </Link>
+            <>
+              <Link href="/manager" style={{ color: "#22c55e", textDecoration: "none" }}>
+                Manager Dashboard
+              </Link>
+              <Link href="/manager/reports" style={{ color: "#22c55e", textDecoration: "none" }}>
+                Reports
+              </Link>
+              <Link href="/manager/queries" style={{ color: "#22c55e", textDecoration: "none" }}>
+                Queries
+              </Link>
+            </>
           )}
         </div>
       </div>

@@ -6,6 +6,7 @@ import styles from '../result.module.css'; // adjust if needed
 import config from '@/utils/config';
 import { getUsernameFromToken } from '@/utils/auth';
 import Navbar from "@/app/components/navbar";
+import { toLocalDateTime } from "@/utils/date";
 
 type Analysis = {
   description: string;
@@ -17,6 +18,8 @@ type Analysis = {
   deposit_frequency: number;
   regular_withdrawal: number;
   withdrawal_frequency: number;
+  created_at?: string;
+  updated_at?: string;
 };
 
 type ResultRow = {
@@ -312,7 +315,11 @@ export default function ResultsPage() {
     )}
   </p>
 </div>
+<div style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#4B5563" }}>
+<p><strong>Created:</strong> {toLocalDateTime(analysisData?.created_at)}</p>
+<p><strong>Updated:</strong> {analysisData?.updated_at ? toLocalDateTime(analysisData.updated_at) : "-"}</p>
 
+          </div>
 
           {isEditing && (
             <button

@@ -48,7 +48,8 @@ class StagingResult(Base):
     withdrawal = Column(Float, nullable=True, default=0.0)
     tax_deduction = Column(Float, nullable=True, default=0.0)
     ending_balance = Column(Float, nullable=False)
-    generated_at = Column(TIMESTAMP, server_default=func.now())
+    generated_at = Column(DateTime(timezone=True), server_default=func.now())
+
 
     analysis = relationship("AnalysisParameter", back_populates="staging_results")
 
@@ -66,6 +67,7 @@ class AnalysisResult(Base):
     withdrawal = Column(Float, default=0.0)
     tax_deduction = Column(Float, default=0.0)
     ending_balance = Column(Float, nullable=False)
-    generated_at = Column(TIMESTAMP, server_default=func.now())
+    generated_at = Column(DateTime(timezone=True), server_default=func.now())
+
 
     analysis = relationship("AnalysisParameter")

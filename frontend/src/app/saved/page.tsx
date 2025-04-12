@@ -9,6 +9,7 @@ import config from '@/utils/config';
 import { getUsernameFromToken } from "@/utils/auth";
 import Navbar from "@/app/components/navbar";
 import { useRouter } from "next/navigation";
+import { toLocalDateTime } from "@/utils/date"; // ✅ Import local date util
 
 type ResultRow = {
   week: number;
@@ -63,7 +64,6 @@ export default function SavedAnalysisPage() {
     })
       .then((res) => res.json())
       .then(data => {
-        // Sort by most recent first
         const sorted = [...data].sort((a, b) => {
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
@@ -213,8 +213,8 @@ export default function SavedAnalysisPage() {
               <div key={a.id} className={styles.card} onClick={() => setSearchId(String(a.id))}>
                 <p><strong>ID:</strong> {a.id}</p>
                 <p><strong>Description:</strong> {a.description}</p>
-                <p><strong>Created:</strong> {a.created_at?.slice(0, 10)}</p>
-                <p><strong>Updated:</strong> {a.updated_at?.slice(0, 10)}</p>
+                <p><strong>Created:</strong> {a.created_at ? toLocalDateTime(a.created_at) : "-"}</p> {/* ✅ Local time */}
+                <p><strong>Updated:</strong> {a.updated_at ? toLocalDateTime(a.updated_at) : "-"}</p> {/* ✅ Local time */}
               </div>
             ))}
         </div>

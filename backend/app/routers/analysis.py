@@ -9,6 +9,7 @@ from app.utils.auth_utils import get_current_user
 from app.models import User
 from app.schemas import AnalysisCreate
 from ..oauth import get_current_user
+from datetime import datetime
 
 # ✅ Define Router
 router = APIRouter()
@@ -28,7 +29,6 @@ class UpdateAnalysisParams(BaseModel):
     deposit_frequency: int
     regular_withdrawal: float
     withdrawal_frequency: int
-
 
 # ✅ CREATE Analysis with user ID
 @router.post("/analysis/")
@@ -70,7 +70,6 @@ async def update_analysis(analysis_id: int, params: UpdateAnalysisParams, db: Se
     analysis.deposit_frequency = params.deposit_frequency
     analysis.regular_withdrawal = params.regular_withdrawal
     analysis.withdrawal_frequency = params.withdrawal_frequency
-
 
     db.commit()
     db.refresh(analysis)
@@ -146,8 +145,9 @@ def move_to_permanent(analysis_id: int, db: Session = Depends(get_db)):
         if not staging_results:
             raise HTTPException(status_code=404, detail="No staging data found")
 
-        permanent_results = [
-            models.AnalysisResult(
+        permanent_results = []
+        for result in staging_results:
+            permanent = models.AnalysisResult(
                 analysis_id=result.analysis_id,
                 week=result.week,
                 beginning_balance=result.beginning_balance,
@@ -156,9 +156,10 @@ def move_to_permanent(analysis_id: int, db: Session = Depends(get_db)):
                 profit=result.profit,
                 withdrawal=result.withdrawal,
                 tax_deduction=result.tax_deduction,
-                ending_balance=result.ending_balance
-            ) for result in staging_results
-        ]
+                ending_balance=result.ending_balance,
+                generated_at=datetime.utcnow()
+            )
+            permanent_results.append(permanent)
 
         db.bulk_save_objects(permanent_results)
         db.commit()
@@ -231,11 +232,9 @@ def save_analysis_results_to_staging(db: Session, analysis_id: int, analysis: sc
 def get_all_analyses_for_manager(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
-
 ):
     if not current_user.is_manager:
         raise HTTPException(status_code=403, detail="Access denied")
 
     analyses = db.query(models.AnalysisParameter).all()
     return analyses
-

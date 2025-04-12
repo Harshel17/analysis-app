@@ -10,6 +10,9 @@ from dotenv import load_dotenv
 import os
 from app import models
 from app.routers import auth 
+from app.routers import reports 
+from app.routers import queries
+
 # Load environment variables
 load_dotenv()
 
@@ -43,6 +46,9 @@ app.include_router(analysis.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
 app.include_router(analysis.router, prefix="/api/analysis", tags=["Analysis"])
 app.include_router(manager.router, prefix="/api/manager", tags=["Manager"])
+app.include_router(reports.router, prefix="/api")
+app.include_router(queries.router, prefix="/api/queries")
+
 
 # Health check route (keep only one)
 @app.get("/")

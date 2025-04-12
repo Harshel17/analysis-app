@@ -6,6 +6,9 @@ import Navbar from "@/app/components/navbar";
 import config from "@/utils/config";
 import { isManagerFromToken } from "@/utils/auth";
 import { useRouter } from "next/navigation";
+import styles from "./ManagerDashboard.module.css";
+import { toLocalDateTime } from "@/utils/date";
+
 
 interface AnalysisData {
   id: number;
@@ -28,6 +31,9 @@ export default function ManagerDashboard() {
   const [principalFilter, setPrincipalFilter] = useState("");
   const [endingBalanceFilter, setEndingBalanceFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -101,125 +107,165 @@ export default function ManagerDashboard() {
     return usernameMatch && principalMatch && endingBalanceMatch && dateMatch;
   });
 
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
+    <div className={styles.container}>
       <Navbar />
+      <h1 className={styles.heading}>📊 Manager Dashboard</h1>
 
-      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <h1 className="text-4xl font-bold text-gray-900 mb-10 text-center">
-          📊 Manager Dashboard
-        </h1>
-
-        {/* Filter Section */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-lg p-6 mb-10">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
-            <span className="mr-2">🔎</span> Filter Analyses
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
-            <input
-              type="text"
-              value={usernameFilter}
-              onChange={(e) => setUsernameFilter(e.target.value)}
-              placeholder="Filter by Username"
-              className="w-full rounded-md border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-            <input
-              type="number"
-              value={principalFilter}
-              onChange={(e) => setPrincipalFilter(e.target.value)}
-              placeholder="Principal < amount"
-              className="w-full rounded-md border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-            <input
-              type="number"
-              value={endingBalanceFilter}
-              onChange={(e) => setEndingBalanceFilter(e.target.value)}
-              placeholder="Ending Balance < amount"
-              className="w-full rounded-md border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-            <button
-              onClick={() => {
-                setUsernameFilter("");
-                setPrincipalFilter("");
-                setEndingBalanceFilter("");
-                setDateFilter("");
-              }}
-              className="bg-gray-100 hover:bg-gray-200 border px-4 py-2 rounded-md text-sm text-gray-800 font-medium shadow-sm"
-            >
-              Reset Filters
-            </button>
-          </div>
+      {/* Filter Section */}
+      <div className={styles.filterBox}>
+        <h2 className={styles.filterTitle}>🔎 Filter Analyses</h2>
+        <div className={styles.filters}>
+          <input
+            type="text"
+            value={usernameFilter}
+            onChange={(e) => {
+              setUsernameFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder="Filter by Username"
+            className={styles.input}
+          />
+          <input
+            type="number"
+            value={principalFilter}
+            onChange={(e) => {
+              setPrincipalFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder="Principal < amount"
+            className={styles.input}
+          />
+          <input
+            type="number"
+            value={endingBalanceFilter}
+            onChange={(e) => {
+              setEndingBalanceFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder="Ending Balance < amount"
+            className={styles.input}
+          />
+          <input
+            type="date"
+            value={dateFilter}
+            onChange={(e) => {
+              setDateFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className={styles.input}
+          />
+          <button
+            onClick={() => {
+              setUsernameFilter("");
+              setPrincipalFilter("");
+              setEndingBalanceFilter("");
+              setDateFilter("");
+              setCurrentPage(1);
+            }}
+            className={styles.button}
+          >
+            Reset Filters
+          </button>
         </div>
+      </div>
 
-        {/* Results Section */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-xl p-6">
-          {loading ? (
-            <div className="text-center py-10">
-              <div className="animate-spin h-8 w-8 border-4 border-blue-400 border-t-transparent rounded-full mx-auto mb-4"></div>
-              <p className="text-blue-500 font-semibold">Fetching data...</p>
-            </div>
-          ) : filteredData.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm md:text-base table-fixed border-collapse">
-                <thead className="bg-gray-100 text-gray-700 uppercase tracking-wide text-xs border-b">
-                  <tr>
-                    <th className="px-4 py-3 text-left">ID</th>
-                    <th className="px-4 py-3 text-left">User</th>
-                    <th className="px-4 py-3 text-left">Description</th>
-                    <th className="px-4 py-3 text-left">Principal</th>
-                    <th className="px-4 py-3 text-left">Ending Balance</th>
-                    <th className="px-4 py-3 text-left">Created</th>
-                    <th className="px-4 py-3 text-left">Action</th>
+      {/* Table Section */}
+      <div className={styles.tableBox}>
+        {loading ? (
+          <p>Loading...</p>
+        ) : paginatedData.length > 0 ? (
+          <>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>User</th>
+                  <th>Description</th>
+                  <th>Principal</th>
+                  <th>Ending Balance</th>
+                  <th>Created</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedData.map((a) => (
+                  <tr key={a.id}>
+                    <td>{a.id}</td>
+                    <td>{a.user?.username || "-"}</td>
+                    <td>{a.description}</td>
+                    <td>{formatCurrency(a.principal)}</td>
+                    <td>{formatCurrency(a.ending_balance)}</td>
+                    <td>{toLocalDateTime(a.created_at)}</td>
+
+                    <td>
+                      <button
+                        className={styles.actionBtn}
+                        onClick={() =>
+                          router.push(`/manager/analysis/${a.id}`)
+                        }
+                      >
+                        View Details
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="text-gray-800">
-                  {filteredData.map((a, idx) => (
-                    <tr
-                      key={a.id}
-                      className={`hover:bg-blue-50 transition duration-150 ${
-                        idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                      }`}
-                    >
-                      <td className="px-4 py-3">{a.id}</td>
-                      <td className="px-4 py-3">{a.user?.username || "-"}</td>
-                      <td className="px-4 py-3">{a.description}</td>
-                      <td className="px-4 py-3 font-medium text-green-600">
-                        {formatCurrency(a.principal)}
-                      </td>
-                      <td className="px-4 py-3 font-semibold text-purple-700">
-                        {formatCurrency(a.ending_balance)}
-                      </td>
-                      <td className="px-4 py-3">
-                        {new Date(a.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => router.push(`/manager/analysis/${a.id}`)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-3 rounded-lg shadow"
-                        >
-                          View Details
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Pagination Controls */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginTop: "20px",
+                gap: "8px",
+                flexWrap: "wrap",
+              }}
+            >
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className={styles.pageBtn}
+              >
+                ⬅ Prev
+              </button>
+
+              {Array.from({ length: totalPages }, (_, idx) => {
+                const pageNum = idx + 1;
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`${styles.pageBtn} ${
+                      currentPage === pageNum ? styles.activePage : ""
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className={styles.pageBtn}
+              >
+                Next ➡
+              </button>
             </div>
-          ) : (
-            !error && (
-              <p className="text-gray-600 mt-6 text-lg text-center">
-                No analyses found matching your search.
-              </p>
-            )
-          )}
-        </div>
+          </>
+        ) : (
+          <p>No results found.</p>
+        )}
       </div>
     </div>
   );
