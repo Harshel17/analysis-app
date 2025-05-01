@@ -35,3 +35,12 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
     user.is_manager = is_manager  # 👈 Attach manager flag from token
     return user
+
+def get_current_manager(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    user = get_current_user(token, db)
+    if not user.is_manager:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only managers can access this resource."
+        )
+    return user

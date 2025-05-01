@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import styles from "./auth.module.css"; // you can reuse/create
+import styles from "./auth.module.css";
 
 const RegisterPage = () => {
   const router = useRouter();
@@ -9,7 +9,6 @@ const RegisterPage = () => {
     username: "",
     email: "",
     password: "",
-    is_manager: 0,
   });
   const [error, setError] = useState("");
 
@@ -28,8 +27,9 @@ const RegisterPage = () => {
         body: JSON.stringify(formData),
       });
 
-      if (!res.ok) throw new Error("Signup failed");
-      alert("✅ Registered successfully!");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Registration failed");
+      alert("✅ Registered Successfully");
       router.push("/auth/login");
     } catch (err: any) {
       setError(err.message || "Something went wrong");
@@ -38,14 +38,26 @@ const RegisterPage = () => {
 
   return (
     <div className={styles.authContainer}>
-      <h2>Register</h2>
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <input name="username" placeholder="Username" onChange={handleChange} required />
-        <input name="email" type="email" placeholder="Email" onChange={handleChange} required />
-        <input name="password" type="password" placeholder="Password" onChange={handleChange} required />
-        <button type="submit">Register</button>
-      </form>
-      {error && <p className={styles.error}>{error}</p>}
+      <img src="/construst.jpg" className={styles.backgroundImage} alt="Background" />
+
+      <h1 className={styles.brandTopLeft}> OAKHURST DEVELOPMENT</h1>
+
+      <div className={styles.card}>
+        <h2 className={styles.title}>Register</h2>
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <input name="username" placeholder="Username" onChange={handleChange} required />
+          <input name="email" placeholder="Email" onChange={handleChange} required />
+          <input name="password" type="password" placeholder="Password" onChange={handleChange} required />
+          <button type="submit">Register</button>
+        </form>
+        {error && <p className={styles.error}>{error}</p>}
+        <p style={{ marginTop: "10px", color: "#cbd5e1" }}>
+          Already have an account?{" "}
+          <a href="/auth/login" className={styles.link}>
+            Login here
+          </a>
+        </p>
+      </div>
     </div>
   );
 };

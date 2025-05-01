@@ -317,8 +317,9 @@ export default function ResultsPage() {
 </div>
 <div style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#4B5563" }}>
 <p><strong>Created:</strong> {toLocalDateTime(analysisData?.created_at)}</p>
-<p><strong>Updated:</strong> {analysisData?.updated_at ? toLocalDateTime(analysisData.updated_at) : "-"}</p>
 
+
+            <p><strong>Updated:</strong> {analysisData.updated_at ? toLocalDateTime(analysisData.updated_at) : "-"}</p>
           </div>
 
           {isEditing && (

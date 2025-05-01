@@ -1,16 +1,20 @@
 export function toLocalDateTime(datetimeString: string | undefined): string {
   if (!datetimeString) return "-";
-  const utcDate = new Date(datetimeString);
+  try {
+    // Parse as UTC first
+    const utcDate = new Date(datetimeString);
 
-  // Get local date components
-  const localDate = new Date(utcDate.getTime() + new Date().getTimezoneOffset() * -60000);
-
-  return localDate.toLocaleString(undefined, {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true
-  });
+    return utcDate.toLocaleString(undefined, {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,  // ✅ user's local timezone
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } catch (error) {
+    console.error("Failed to parse datetime:", datetimeString, error);
+    return "-";
+  }
 }

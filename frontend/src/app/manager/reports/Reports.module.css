@@ -1,71 +1,203 @@
 .container {
-    min-height: 100vh;
-    background: linear-gradient(to bottom, white, #e5f0ff);
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.wrapper {
+  margin-top: 2rem;
+}
+
+.heading {
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.filters input,
+.filters button {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.filters button {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.filters button:hover {
+  background-color: #1d4ed8;
+}
+
+.tableContainer {
+  overflow-x: auto;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-top: 1rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table th {
+  background-color: #f9fafb;
+  font-weight: bold;
+}
+
+.pagination {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.pageButton {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+}
+
+.activePage {
+  background-color: #2563eb;
+  color: white;
+  font-weight: bold;
+  border: 1px solid #2563eb;
+}
+
+.noData {
+  text-align: center;
+  color: gray;
+  margin-top: 2rem;
+  font-size: 1.2rem;
+}
+
+.spinnerContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 5px solid #ccc;
+  border-top: 5px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 📄 Print Mode */
+@media print {
+  .wrapper :global(nav),
+  .wrapper :global(.filters),
+  .wrapper :global(button),
+  .wrapper :global(.pagination) {
+    display: none !important;
   }
-  
+
   .wrapper {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 40px 20px;
+    margin: 0;
+    padding: 0;
   }
-  
-  .heading {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: #1f2937;
-    margin-bottom: 2rem;
-    text-align: center;
+
+  .wrapper .table {
+    width: 100%;
+    border-collapse: collapse;
   }
-  
-  .card {
-    background: white;
-    padding: 24px;
-    border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+
+  .wrapper .table th,
+  .wrapper .table td {
+    border: 1px solid black;
+    padding: 8px;
   }
-  
-  .title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #1e40af;
-    margin-bottom: 20px;
-  }
-  
-  .filters {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 16px;
-  }
-  
-  .input {
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 0.9rem;
-  }
-  
-  .button {
-    background-color: #2563eb;
-    color: white;
-    font-weight: 500;
-    padding: 10px 16px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    transition: 0.2s ease;
-  }
-  
-  .button:hover {
-    background-color: #1d4ed8;
-  }
-  
-  .error {
-    background: #fee2e2;
-    color: #b91c1c;
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    text-align: center;
-    font-weight: 500;
-  }
-  
+
+  .wrapper :global(body) { background: white; }
+
+}
+
+.selectionSummary {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: #f1f5f9;
+  border-left: 4px solid #3b82f6;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: #1f2937;
+}
+
+.designModal {
+  position: fixed;
+  top: 20%;
+  left: 30%;
+  width: 40%;
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  padding: 20px;
+  z-index: 9999;
+  box-shadow: 0 0 20px rgba(0,0,0,0.2);
+}
+
+.designOptions {
+  margin: 10px 0 20px 0;
+}
+
+.totalRow {
+  background-color: #f1f5f9;
+  font-weight: bold;
+  border-top: 2px solid #ccc;
+  text-align: right;
+}
+.totalRow td:first-child {
+  text-align: left;
+}
+
+.totalRow {
+  background-color: #f1f5f9;
+  font-weight: bold;
+  border-top: 2px solid #ccc;
+  text-align: right;
+}
+.totalRow td:first-child {
+  text-align: left;
+}

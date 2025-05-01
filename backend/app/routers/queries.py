@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 from app.database import get_db
 from app.models import AnalysisResult, AnalysisParameter, User
 from typing import Optional
@@ -20,9 +21,10 @@ def query_analyses(
     db: Session = Depends(get_db)
 ):
     query = (
-        db.query(AnalysisResult)
-        .join(AnalysisResult.analysis)
-        .join(AnalysisParameter.user)
+        db.query(AnalysisResult, AnalysisParameter, User)
+        .join(AnalysisParameter, AnalysisResult.analysis_id == AnalysisParameter.id)
+        .join(User, AnalysisParameter.user_id == User.id)
+        .order_by(desc(AnalysisResult.generated_at))
     )
 
     if username:
@@ -30,13 +32,13 @@ def query_analyses(
     if description_contains:
         query = query.filter(AnalysisParameter.description.ilike(f"%{description_contains}%"))
     if principal_gt is not None:
-        query = query.filter(AnalysisParameter.principal > principal_gt)
+        query = query.filter(AnalysisParameter.principal >= principal_gt)
     if principal_lt is not None:
-        query = query.filter(AnalysisParameter.principal < principal_lt)
+        query = query.filter(AnalysisParameter.principal <= principal_lt)
     if ending_balance_gt is not None:
-        query = query.filter(AnalysisResult.ending_balance > ending_balance_gt)
+        query = query.filter(AnalysisResult.ending_balance >= ending_balance_gt)
     if ending_balance_lt is not None:
-        query = query.filter(AnalysisResult.ending_balance < ending_balance_lt)
+        query = query.filter(AnalysisResult.ending_balance <= ending_balance_lt)
     if start_date:
         start_dt = datetime.strptime(start_date, "%Y-%m-%d")
         query = query.filter(AnalysisResult.generated_at >= start_dt)
@@ -44,17 +46,21 @@ def query_analyses(
         end_dt = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
         query = query.filter(AnalysisResult.generated_at <= end_dt)
 
-    results = query.all()
-
+    seen_ids = set()
     response = []
-    for r in results:
+
+    for result, param, user in query.all():
+        if result.analysis_id in seen_ids:
+            continue
+        seen_ids.add(result.analysis_id)
+
         response.append({
-            "id": r.id,
-            "username": r.analysis.user.username if r.analysis and r.analysis.user else "-",
-            "description": r.analysis.description if r.analysis else "-",
-            "principal": r.analysis.principal if r.analysis else 0,
-            "ending_balance": r.ending_balance,
-            "generated_at": r.generated_at.isoformat() if r.generated_at else None
+            "id": result.analysis_id,
+            "username": user.username,
+            "description": param.description,
+            "principal": param.principal,
+            "ending_balance": result.ending_balance,
+            "generated_at": result.generated_at.isoformat() if result.generated_at else None
         })
 
     return response

@@ -71,3 +71,17 @@ class AnalysisResult(Base):
 
 
     analysis = relationship("AnalysisParameter")
+
+class PermanentResult(Base):
+    __tablename__ = "permanent_results"
+
+    id = Column(Integer, primary_key=True, index=True)
+    analysis_id = Column(Integer, ForeignKey("analysis_parameters.id"))
+    week = Column(Integer)
+    beginning_balance = Column(Float)
+    additional_deposit = Column(Float)
+    profit = Column(Float)
+    withdrawal = Column(Float)
+    tax_deduction = Column(Float)
+    ending_balance = Column(Float)
+    generated_at = Column(DateTime(timezone=True), server_default=func.now())

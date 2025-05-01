@@ -10,6 +10,7 @@ from app.models import User
 from app.schemas import AnalysisCreate
 from ..oauth import get_current_user
 from datetime import datetime
+import pytz
 
 # ✅ Define Router
 router = APIRouter()
@@ -141,10 +142,20 @@ def get_saved_analyses(db: Session = Depends(get_db), current_user: User = Depen
 @router.post("/move-to-permanent/{analysis_id}")
 def move_to_permanent(analysis_id: int, db: Session = Depends(get_db)):
     try:
+        # ✅ 1. Fetch staging results
         staging_results = db.query(models.StagingResult).filter(models.StagingResult.analysis_id == analysis_id).all()
         if not staging_results:
             raise HTTPException(status_code=404, detail="No staging data found")
 
+        # ✅ 2. Delete old permanent analysis results
+        db.query(models.AnalysisResult).filter(models.AnalysisResult.analysis_id == analysis_id).delete()
+        db.commit()
+
+        # ✅ 3. Delete old permanent weekly breakdowns
+        db.query(models.PermanentResult).filter(models.PermanentResult.analysis_id == analysis_id).delete()
+        db.commit()
+
+        # ✅ 4. Move analysis-level final result
         permanent_results = []
         for result in staging_results:
             permanent = models.AnalysisResult(
@@ -157,22 +168,45 @@ def move_to_permanent(analysis_id: int, db: Session = Depends(get_db)):
                 withdrawal=result.withdrawal,
                 tax_deduction=result.tax_deduction,
                 ending_balance=result.ending_balance,
-                generated_at=datetime.utcnow()
+                generated_at=datetime.now(pytz.UTC)
             )
             permanent_results.append(permanent)
 
         db.bulk_save_objects(permanent_results)
         db.commit()
+
+        # ✅ 5. Move weekly breakdown to permanent_results
+        permanent_weekly = []
+        for sr in staging_results:
+            permanent_row = models.PermanentResult(
+                analysis_id=sr.analysis_id,
+                week=sr.week,
+                beginning_balance=sr.beginning_balance,
+                additional_deposit=sr.additional_deposit,
+                profit=sr.profit,
+                withdrawal=sr.withdrawal,
+                tax_deduction=sr.tax_deduction,
+                ending_balance=sr.ending_balance,
+                generated_at=sr.generated_at,
+            )
+            permanent_weekly.append(permanent_row)
+
+        db.bulk_save_objects(permanent_weekly)
+        db.commit()
+
+        # ✅ 6. Clean up staging table
         db.query(models.StagingResult).filter(models.StagingResult.analysis_id == analysis_id).delete()
         db.commit()
 
-        logger.info(f"✅ Analysis {analysis_id} moved to permanent table")
-        return {"message": "Data successfully moved to permanent table"}
+        logger.info(f"✅ Analysis {analysis_id} moved to permanent table (including weekly results)")
+        return {"message": "Data successfully moved to permanent tables"}
 
     except Exception as e:
         db.rollback()
         logger.error(f"🚨 Failed to move data: {str(e)}")
         return {"error": f"Failed to move data: {str(e)}"}
+
+
 
 def save_analysis_results_to_staging(db: Session, analysis_id: int, analysis: schemas.AnalysisCreate):
     try:

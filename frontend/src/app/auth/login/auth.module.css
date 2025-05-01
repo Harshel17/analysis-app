@@ -1,0 +1,138 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&display=swap');
+
+.authContainer {
+  height: 100vh;
+  width: 100%;
+  background: url("/construst.jpg") no-repeat center center;
+  background-size: cover;
+  font-family: 'Orbitron', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 0;
+}
+
+/* 🏗 Top-Left Brand Logo */
+.brand {
+    position: absolute;
+    top: 30px;
+    left: 35px;
+    font-size: 2.5rem; /* ⬅️ increased size */
+    font-weight: 800;
+    color: #ffffff; /* ⬅️ changed to white */
+    z-index: 2;
+    letter-spacing: 3px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+    animation: dropInBrand 1.2s ease-in-out;
+  }
+  
+
+@keyframes dropInBrand {
+  from {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  z-index: 1;
+  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.55);
+  padding: 40px 50px;
+  border-radius: 16px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+  width: 320px;
+  text-align: center;
+  animation: fadeIn 1s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.title {
+  font-size: 2rem;
+  color: white;
+  margin-bottom: 25px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form input {
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  outline: none;
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f172a;
+}
+
+.form button {
+  background-color: #3b82f6;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.form button:hover {
+  background-color: #1e40af;
+}
+
+.error {
+  margin-top: 12px;
+  color: #f87171;
+  font-weight: bold;
+}
+
+/* 👷 Register Prompt */
+.registerText {
+  margin-top: 20px;
+  color: #cccccc;
+  font-size: 0.9rem;
+}
+
+.registerLink {
+  color: #3b82f6;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+}
+
+.registerLink:hover {
+  color: #1d4ed8;
+}

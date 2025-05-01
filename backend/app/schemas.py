@@ -62,6 +62,18 @@ class AnalysisWithUserOut(BaseModel):
     updated_at: Optional[datetime]
     ending_balance: Optional[float]=None 
     user: Optional[UserOut]
+    
+class AnalysisUpdate(BaseModel):
+    description: Optional[str]
+    principal: Optional[float]
+    interest_week: Optional[float]
+    projection_period: Optional[int]
+    tax_rate: Optional[float]
+    additional_deposit: Optional[float]
+    deposit_frequency: Optional[int]
+    regular_withdrawal: Optional[float]
+    withdrawal_frequency: Optional[int]
+    
      
     
     class Config:

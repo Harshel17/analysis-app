@@ -1,62 +1,172 @@
 .container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 2rem;
-    background-color: #f9f9f9;
+  height: 100vh;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Rajdhani', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: black;
+}
+
+/* 🎥 Background video styling */
+.videoBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  opacity: 1; /* full visibility */
+  filter: none; /* remove dulling */
+  pointer-events: none;
+}
+
+
+
+/* 🔲 Overlay to darken the video */
+.videoOverlay {
+  background: rgba(0, 0, 0, 0.1); /* used to be 0.4 or 0.6 */
+  z-index: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+
+/* 🏗️ Brand Name */
+.brandText {
+  z-index: 1;
+  font-size: 3.5rem;
+  font-weight: 800;
+  font-family: 'Orbitron', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-align: center;
+  position: relative;
+  animation: fadeInUp 1s ease;
+
+  color: white; /* ✅ Clean white text */
+
+  /* Optional: Light shadow for contrast */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+
+/* ✨ Optional spotlight glow behind the gradient text */
+.brandText::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 280px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent 80%);
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  filter: blur(18px);
+}
+
+
+/* 🧱 Letter Drop Animation */
+.letter {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(-50px);
+  animation: dropIn 0.5s forwards;
+}
+
+@keyframes dropIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .heading {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #1e3a8a; /* blue-800 */
-    margin-bottom: 1rem;
+}
+
+/* 📊 Action Buttons */
+.buttonGroup {
+  z-index: 1;
+  display: flex;
+  gap: 20px;
+  opacity: 0;
+  animation: fadeUp 1s ease 1.6s forwards;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  
-  .buttonGroup {
-    display: flex;
-    gap: 1rem;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .button {
-    padding: 0.75rem 1.5rem;
-    font-weight: 600;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+}
+
+.button {
+  padding: 14px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+}
+
+.button:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+}
+
+.startBtn {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.savedBtn {
+  background-color: #10b981;
+  color: white;
+}
+
+/* 🔐 Auth Buttons */
+.authButtons {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+  z-index: 2;
+}
+
+.authButton {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+  font-weight: 500;
+}
+
+.loginBtn {
+  background-color: #2563eb;
+}
+
+.registerBtn {
+  background-color: #10b981;
+}
+
+/* ✨ General fade in */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
   }
-  
-  .startBtn {
-    background-color: #3b82f6; /* blue-500 */
-    color: white;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .startBtn:hover {
-    background-color: #2563eb; /* blue-600 */
-  }
-  
-  .savedBtn {
-    background-color: #22c55e; /* green-500 */
-    color: white;
-  }
-  
-  .savedBtn:hover {
-    background-color: #16a34a; /* green-600 */
-  }
-  
-  .brandBackground {
-    position: absolute;
-    top: 20%;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    font-size: 6rem;
-    font-weight: bold;
-    opacity: 0.05;
-    z-index: 0;
-    letter-spacing: 10px;
-  }
-  
+}

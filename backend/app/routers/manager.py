@@ -4,6 +4,7 @@ from typing import List
 from app import models, schemas
 from app.database import get_db
 from app.oauth import get_current_user
+from app.routers.calculations import recalculate_analysis 
 
 router = APIRouter()
 
@@ -43,3 +44,39 @@ def get_latest_ending_balance(
         "analysis_id": analysis_id,
         "ending_balance": float(last_result.ending_balance)
     }
+ 
+
+# ✅ 3. Update analysis parameters and recalculate results
+@router.put("/update-analysis/{analysis_id}")
+def update_analysis_for_manager(
+    analysis_id: int,
+    updated_params: schemas.AnalysisUpdate,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not current_user.is_manager:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden")
+
+    # Fetch the existing analysis
+    analysis = db.query(models.AnalysisParameter).filter(models.AnalysisParameter.id == analysis_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+
+    # ✅ Update all fields except ID
+    for field, value in updated_params.dict(exclude_unset=True).items():
+        if field != "id" and hasattr(analysis, field):
+            setattr(analysis, field, value)
+
+    db.commit()
+    db.refresh(analysis)
+
+    # ✅ Delete old results first
+    db.query(models.AnalysisResult).filter(models.AnalysisResult.analysis_id == analysis_id).delete()
+    db.commit()
+
+    # ✅ Recalculate and save fresh results
+    new_results = recalculate_analysis(analysis)
+    db.bulk_save_objects(new_results)
+    db.commit()
+
+    return {"message": "✅ Analysis updated and recalculated successfully."}

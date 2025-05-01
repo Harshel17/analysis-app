@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import config from "@/utils/config";
 import Navbar from "@/app/components/navbar";
 import styles from "./AnalysisDetails.module.css";
 import { toLocalDateTime } from "@/utils/date";
-
 
 interface ResultRow {
   week: number;
@@ -28,6 +27,9 @@ interface AnalysisMetadata {
   projection_period: number;
   deposit_frequency: number;
   withdrawal_frequency: number;
+  tax_rate: number;
+  additional_deposit: number;
+  regular_withdrawal: number;
 }
 
 export default function ManagerAnalysisDetails() {
@@ -36,39 +38,52 @@ export default function ManagerAnalysisDetails() {
 
   const [data, setData] = useState<ResultRow[]>([]);
   const [meta, setMeta] = useState<AnalysisMetadata | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editedMeta, setEditedMeta] = useState<AnalysisMetadata | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const formatDate = (utcDate?: string): string =>
-    utcDate ? new Date(utcDate).toLocaleString() : "-";
-  
+  const [fromQuery, setFromQuery] = useState<string | null>(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
+useEffect(() => {
+  if (typeof window !== "undefined") {
+    const urlParams = new URLSearchParams(window.location.search);
+    const from = urlParams.get("from");
+    setFromQuery(from);
+  }
+}, []);
 
-    const fetchData = async () => {
-      try {
-        const [resultsRes, metaRes] = await Promise.all([
-          axios.get(`${config}/analysis/permanent-results/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get(`${config}/analysis/analysis/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
-        setData(resultsRes.data);
-        setMeta(metaRes.data);
-      } catch (err) {
-        setError("⚠️ Unable to fetch analysis data.");
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchData();
-  }, [id]);
+const backLink = fromQuery === "queries" ? "/manager/queries" : "/manager";
+
+
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   const format = (val: number) =>
     val.toLocaleString("en-US", { style: "currency", currency: "USD" });
+
+  const fetchMetadataAndResults = async () => {
+    try {
+      const [resultsRes, metaRes] = await Promise.all([
+        axios.get(`${config}/analysis/permanent-results/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(`${config}/analysis/analysis/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+      setData(resultsRes.data);
+      setMeta(metaRes.data);
+      setEditedMeta(metaRes.data);
+    } catch (err) {
+      setError("⚠️ Unable to fetch analysis data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMetadataAndResults();
+  }, [id]);
 
   const handleExport = () => {
     const csvRows = [
@@ -95,13 +110,58 @@ export default function ManagerAnalysisDetails() {
     URL.revokeObjectURL(url);
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (editedMeta) {
+      setEditedMeta({ ...editedMeta, [e.target.name]: e.target.value });
+    }
+  };
+
+  const handleSaveChanges = async () => {
+    try {
+      await axios.post(
+        `${config}/analysis/update-analysis/${id}`,
+        {
+          description: editedMeta?.description,
+          principal: Number(editedMeta?.principal),
+          interest_week: Number(editedMeta?.interest_week),
+          projection_period: Number(editedMeta?.projection_period),
+          tax_rate: Number(editedMeta?.tax_rate),
+          additional_deposit: Number(editedMeta?.additional_deposit),
+          deposit_frequency: Number(editedMeta?.deposit_frequency),
+          regular_withdrawal: Number(editedMeta?.regular_withdrawal),
+          withdrawal_frequency: Number(editedMeta?.withdrawal_frequency),
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+  
+      await axios.post(
+        `${config}/analysis/move-to-permanent/${id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+  
+      // ✅ Clear old results
+      setData([]);
+  
+      // ✅ Then refetch fresh
+      await fetchMetadataAndResults();
+  
+      alert("✅ Changes saved and recalculated successfully!");
+      setEditMode(false);
+    } catch (err) {
+      alert("🚨 Failed to save changes. Please try again.");
+    }
+  };
+  
+
   return (
     <div className={styles.container}>
       <Navbar />
       <div className={styles.inner}>
-        <button onClick={() => router.push("/manager")} className={styles.backBtn}>
-          ← Return to Dashboard
-        </button>
+      <button onClick={() => router.push(backLink)} className={styles.backBtn}>
+  ← Return to {fromQuery === "queries" ? "Queries" : "Dashboard"}
+</button>
+
 
         <h1 className={styles.heading}>📊 Analysis Details</h1>
 
@@ -113,36 +173,61 @@ export default function ManagerAnalysisDetails() {
           <>
             {meta && (
               <>
-                <h2 className={styles.subheading}>📌 Parameters</h2>
+                <div className={styles.breakdownHeader}>
+                  <h2 className={styles.subheading}>📌 Parameters</h2>
+                  <button
+                    className={styles.editButton}
+                    onClick={() => setEditMode(!editMode)}
+                  >
+                    {editMode ? "Cancel" : "Edit"}
+                  </button>
+                </div>
+
                 <div className={styles.card}>
                   <div className={styles.cardRow}>
-                    <span>Analysis ID:</span>
-                    <span>{meta.id}</span>
+                    <span>Analysis ID:</span><span>{meta.id}</span>
                   </div>
-                  <div className={styles.cardRow}>
-                    <span>Description:</span>
-                    <span>{meta.description}</span>
-                  </div>
-                  <div className={styles.cardRow}>
-                    <span>Principal:</span>
-                    <span className={styles.green}>{format(meta.principal)}</span>
-                  </div>
-                  <div className={styles.cardRow}>
-                    <span>Interest (weekly):</span>
-                    <span>{meta.interest_week}%</span>
-                  </div>
-                  <div className={styles.cardRow}>
-                    <span>Projection Period:</span>
-                    <span>{meta.projection_period} weeks</span>
-                  </div>
-                  <div className={styles.cardRow}>
-                    <span>Deposit Frequency:</span>
-                    <span>Every {meta.deposit_frequency} weeks</span>
-                  </div>
-                  <div className={styles.cardRow}>
-                    <span>Withdrawal Frequency:</span>
-                    <span>Every {meta.withdrawal_frequency} weeks</span>
-                  </div>
+
+                  {editMode ? (
+                    <>
+                      {[
+                        "description",
+                        "principal",
+                        "interest_week",
+                        "projection_period",
+                        "tax_rate",
+                        "deposit_frequency",
+                        "additional_deposit",
+                        "regular_withdrawal",
+                        "withdrawal_frequency",
+                      ].map((field) => (
+                        <div key={field} className={styles.cardRow}>
+                          <span>{field.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}:</span>
+                          <input
+                            name={field}
+                            type={field.includes("description") ? "text" : "number"}
+                            value={(editedMeta as any)?.[field] ?? ""}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      ))}
+                      <button className={styles.saveButton} onClick={handleSaveChanges}>
+                        Save Changes
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className={styles.cardRow}><span>Description:</span><span>{meta.description}</span></div>
+                      <div className={styles.cardRow}><span>Principal:</span><span className={styles.green}>{format(meta.principal)}</span></div>
+                      <div className={styles.cardRow}><span>Interest (weekly):</span><span>{meta.interest_week}%</span></div>
+                      <div className={styles.cardRow}><span>Projection Period:</span><span>{meta.projection_period} weeks</span></div>
+                      <div className={styles.cardRow}><span>Tax Rate:</span><span>{meta.tax_rate}%</span></div>
+                      <div className={styles.cardRow}><span>Deposit Frequency:</span><span>Every {meta.deposit_frequency} weeks</span></div>
+                      <div className={styles.cardRow}><span>Additional Deposit:</span><span>{format(meta.additional_deposit)}</span></div>
+                      <div className={styles.cardRow}><span>Regular Withdrawal:</span><span>{format(meta.regular_withdrawal)}</span></div>
+                      <div className={styles.cardRow}><span>Withdrawal Frequency:</span><span>Every {meta.withdrawal_frequency} weeks</span></div>
+                    </>
+                  )}
                 </div>
               </>
             )}
@@ -153,13 +238,12 @@ export default function ManagerAnalysisDetails() {
                 ⬇ Export CSV
               </button>
             </div>
+
             {data.length > 0 && data[0].generated_at && (
- <p style={{ fontSize: "0.9rem", marginTop: "-1rem", marginBottom: "1rem", color: "#4B5563" }}>
- ⏱️ Generated At: <strong>{toLocalDateTime(data[0].generated_at)}</strong>
-</p>
-
-)}
-
+              <p style={{ fontSize: "0.9rem", marginTop: "-1rem", marginBottom: "1rem", color: "#4B5563" }}>
+                ⏱️ Generated At: <strong>{toLocalDateTime(data[0].generated_at)}</strong>
+              </p>
+            )}
 
             <div className={styles.tableWrapper}>
               <table className={styles.breakdownTable}>
@@ -176,10 +260,7 @@ export default function ManagerAnalysisDetails() {
                 </thead>
                 <tbody>
                   {data.map((row, idx) => (
-                    <tr
-                      key={idx}
-                      className={idx % 2 === 0 ? styles.rowEven : styles.rowOdd}
-                    >
+                    <tr key={idx} className={idx % 2 === 0 ? styles.rowEven : styles.rowOdd}>
                       <td>{row.week}</td>
                       <td className={styles.green}>{format(row.beginning_balance)}</td>
                       <td className={styles.blue}>{format(row.additional_deposit)}</td>
