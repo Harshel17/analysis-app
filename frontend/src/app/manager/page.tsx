@@ -9,12 +9,10 @@ import { useRouter } from "next/navigation";
 import styles from "./ManagerDashboard.module.css";
 import { toLocalDateTime } from "@/utils/date";
 
-
 interface AnalysisData {
   id: number;
   description: string;
   principal: number;
-  ending_balance?: number | null;
   created_at: string;
   user: {
     username: string;
@@ -29,7 +27,6 @@ export default function ManagerDashboard() {
 
   const [usernameFilter, setUsernameFilter] = useState("");
   const [principalFilter, setPrincipalFilter] = useState("");
-  const [endingBalanceFilter, setEndingBalanceFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -49,24 +46,7 @@ export default function ManagerDashboard() {
             Authorization: `Bearer ${token}`,
           },
         });
-
-        const fetchedAnalyses = res.data;
-
-        const withBalances = await Promise.all(
-          fetchedAnalyses.map(async (a: AnalysisData) => {
-            try {
-              const balanceRes = await axios.get(
-                `${config}/manager/ending-balance/${a.id}`,
-                { headers: { Authorization: `Bearer ${token}` } }
-              );
-              return { ...a, ending_balance: balanceRes.data.ending_balance };
-            } catch {
-              return { ...a, ending_balance: null };
-            }
-          })
-        );
-
-        setAnalyses(withBalances);
+        setAnalyses(res.data);
       } catch (err) {
         console.error("Error fetching manager data:", err);
         setError("❌ Failed to fetch analyses. Check console for details.");
@@ -95,16 +75,12 @@ export default function ManagerDashboard() {
       principalFilter === "" ||
       a.principal <= parseFloat(principalFilter || "0");
 
-    const endingBalanceMatch =
-      endingBalanceFilter === "" ||
-      (a.ending_balance ?? 0) <= parseFloat(endingBalanceFilter || "0");
-
     const dateMatch =
       dateFilter === "" ||
       new Date(a.created_at).toLocaleDateString() ===
         new Date(dateFilter).toLocaleDateString();
 
-    return usernameMatch && principalMatch && endingBalanceMatch && dateMatch;
+    return usernameMatch && principalMatch && dateMatch;
   });
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -114,158 +90,150 @@ export default function ManagerDashboard() {
   );
 
   return (
-    <div className={styles.container}>
-      <Navbar />
-      <h1 className={styles.heading}>📊 Manager Dashboard</h1>
-
-      {/* Filter Section */}
-      <div className={styles.filterBox}>
-        <h2 className={styles.filterTitle}>🔎 Filter Analyses</h2>
-        <div className={styles.filters}>
-          <input
-            type="text"
-            value={usernameFilter}
-            onChange={(e) => {
-              setUsernameFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder="Filter by Username"
-            className={styles.input}
-          />
-          <input
-            type="number"
-            value={principalFilter}
-            onChange={(e) => {
-              setPrincipalFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder="Principal < amount"
-            className={styles.input}
-          />
-          <input
-            type="number"
-            value={endingBalanceFilter}
-            onChange={(e) => {
-              setEndingBalanceFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder="Ending Balance < amount"
-            className={styles.input}
-          />
-          <input
-            type="date"
-            value={dateFilter}
-            onChange={(e) => {
-              setDateFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className={styles.input}
-          />
-          <button
-            onClick={() => {
-              setUsernameFilter("");
-              setPrincipalFilter("");
-              setEndingBalanceFilter("");
-              setDateFilter("");
-              setCurrentPage(1);
-            }}
-            className={styles.button}
-          >
-            Reset Filters
-          </button>
-        </div>
+    <div className={styles.pageWrapper}>
+      {/* Sidebar */}
+      <div className={styles.sidebar}>
+        <Navbar />
       </div>
 
-      {/* Table Section */}
-      <div className={styles.tableBox}>
-        {loading ? (
-          <p>Loading...</p>
-        ) : paginatedData.length > 0 ? (
-          <>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>User</th>
-                  <th>Description</th>
-                  <th>Principal</th>
-                  <th>Ending Balance</th>
-                  <th>Created</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedData.map((a) => (
-                  <tr key={a.id}>
-                    <td>{a.id}</td>
-                    <td>{a.user?.username || "-"}</td>
-                    <td>{a.description}</td>
-                    <td>{formatCurrency(a.principal)}</td>
-                    <td>{formatCurrency(a.ending_balance)}</td>
-                    <td>{toLocalDateTime(a.created_at)}</td>
+      {/* Main Content */}
+      <div className={styles.mainContent}>
+        <h1 className={styles.heading}>📊 Manager Dashboard</h1>
 
-                    <td>
-                      <button
-                        className={styles.actionBtn}
-                        onClick={() =>
-                          router.push(`/manager/analysis/${a.id}`)
-                        }
-                      >
-                        View Details
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* Pagination Controls */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                marginTop: "20px",
-                gap: "8px",
-                flexWrap: "wrap",
+        <div className={styles.filterBox}>
+          <h2 className={styles.filterTitle}>🔎 Filter Analyses</h2>
+          <div className={styles.filters}>
+            <input
+              type="text"
+              value={usernameFilter}
+              onChange={(e) => {
+                setUsernameFilter(e.target.value);
+                setCurrentPage(1);
               }}
+              placeholder="Filter by Username"
+              className={styles.input}
+            />
+            <input
+              type="number"
+              value={principalFilter}
+              onChange={(e) => {
+                setPrincipalFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Principal < amount"
+              className={styles.input}
+            />
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => {
+                setDateFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className={styles.input}
+            />
+            <button
+              onClick={() => {
+                setUsernameFilter("");
+                setPrincipalFilter("");
+                setDateFilter("");
+                setCurrentPage(1);
+              }}
+              className={styles.button}
             >
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                disabled={currentPage === 1}
-                className={styles.pageBtn}
-              >
-                ⬅ Prev
-              </button>
+              Reset Filters
+            </button>
+          </div>
+        </div>
 
-              {Array.from({ length: totalPages }, (_, idx) => {
-                const pageNum = idx + 1;
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setCurrentPage(pageNum)}
-                    className={`${styles.pageBtn} ${
-                      currentPage === pageNum ? styles.activePage : ""
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
+        <div className={styles.tableBox}>
+          {loading ? (
+            <p>Loading...</p>
+          ) : paginatedData.length > 0 ? (
+            <>
+              <div style={{ overflowX: "auto" }}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>User</th>
+                      <th>Description</th>
+                      <th>Principal</th>
+                      <th>Created</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedData.map((a) => (
+                      <tr key={a.id}>
+                        <td>{a.id}</td>
+                        <td>{a.user?.username || "-"}</td>
+                        <td>{a.description}</td>
+                        <td>{formatCurrency(a.principal)}</td>
+                        <td>{toLocalDateTime(a.created_at)}</td>
+                        <td>
+                          <button
+                            className={styles.actionBtn}
+                            onClick={() =>
+                              router.push(`/manager/analysis/${a.id}`)
+                            }
+                          >
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-              <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(p + 1, totalPages))
-                }
-                disabled={currentPage === totalPages}
-                className={styles.pageBtn}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginTop: "20px",
+                  gap: "8px",
+                  flexWrap: "wrap",
+                }}
               >
-                Next ➡
-              </button>
-            </div>
-          </>
-        ) : (
-          <p>No results found.</p>
-        )}
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                  disabled={currentPage === 1}
+                  className={styles.pageBtn}
+                >
+                  ⬅ Prev
+                </button>
+
+                {Array.from({ length: totalPages }, (_, idx) => {
+                  const pageNum = idx + 1;
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`${styles.pageBtn} ${
+                        currentPage === pageNum ? styles.activePage : ""
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(p + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  className={styles.pageBtn}
+                >
+                  Next ➡
+                </button>
+              </div>
+            </>
+          ) : (
+            <p>No results found.</p>
+          )}
+        </div>
       </div>
     </div>
   );

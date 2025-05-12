@@ -1,5 +1,3 @@
-// FINAL Updated Frontend: `page.tsx` for Reports (With Totals Toggle, Colored Row, and Exported Totals)
-
 "use client";
 
 import { useEffect, useState, Fragment } from "react";
@@ -214,151 +212,153 @@ export default function ReportsPage() {
   const totalPages = Math.ceil(reports.length / reportsPerPage);
 
   return (
-    <div className={styles.container}>
+    <div style={{ display: "flex", flexDirection: 'row'}}>
+
       <Navbar />
-      <div className={styles.wrapper}>
-        <h1 className={styles.heading}>📄 Manager Reports</h1>
+      <div className={styles.container}>
+        <div className={styles.wrapper}>
+          <h1 className={styles.heading}>📄 Manager Reports</h1>
 
-        {error && <p className={styles.error}>{error}</p>}
+          {error && <p className={styles.error}>{error}</p>}
 
-        <div className={styles.card}>
-          <h2 className={styles.title}>📊 Download or View Financial Report</h2>
-          <div className={styles.filters}>
-            <input type="text" placeholder="Filter by Username" value={username} onChange={(e) => setUsername(e.target.value)} className={styles.input} />
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={styles.input} />
-            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className={styles.input} />
-            <button onClick={exportCSV} className={styles.button} disabled={selectedReportIds.length === 0}>⬇ Export CSV</button>
-            <button onClick={downloadPDF} className={styles.button} disabled={selectedReportIds.length === 0}>🧾 Export PDF</button>
-            <button onClick={fetchReports} className={styles.button}>🔍 Search Reports</button>
-          </div>
-          <div style={{ marginTop: "0.5rem" }}>
-            <label>
-              <input type="checkbox" checked={showTotals} onChange={() => setShowTotals(!showTotals)} style={{ marginRight: "0.5rem" }} /> Show Totals Row
-            </label>
-          </div>
-        </div>
-
-
-        {loading && <div className={styles.spinnerContainer}><div className={styles.spinner}></div><p>Loading reports...</p></div>}
-
-        {!loading && currentReports.length > 0 && (
-          <div className={styles.tableContainer}>
-            {selectedReportIds.length > 0 && (
-              <div className={styles.selectionSummary}>
-                <p>
-                  ✅ <strong>Selected Analyses:</strong> {selectedReportIds.join(", ")}
-                </p>
-              </div>
-            )}
-
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Username</th>
-                  <th>Description</th>
-                  <th>Principal</th>
-                  <th>Ending Balance</th>
-                  <th>Created</th>
-                  <th>View</th>
-                  <th>Select</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentReports.map((report) => (
-                  <Fragment key={report.id}>
-                    <tr>
-                      <td>{report.id}</td>
-                      <td>{report.username}</td>
-                      <td>{report.description}</td>
-                      <td>${report.principal.toLocaleString()}</td>
-                      <td>${report.ending_balance?.toLocaleString() || "-"}</td>
-                      <td>{toLocalDateTime(report.created_at)}</td>
-                      <td>
-                        <button onClick={() => toggleExpand(report.id)} className={styles.selectButton}>
-                          {expandedReports.includes(report.id) ? "Hide" : "View"}
-                        </button>
-                      </td>
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={selectedReportIds.includes(report.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedReportIds((prev) => [...prev, report.id]);
-                            } else {
-                              setSelectedReportIds((prev) => prev.filter((id) => id !== report.id));
-                            }
-                          }}
-                        />
-                      </td>
-                    </tr>
-                    {expandedReports.includes(report.id) && (
-                      <tr>
-                        <td colSpan={8}>
-                          <table className={styles.innerTable}>
-                            <thead>
-                              <tr>
-                                <th>Week</th>
-                                <th>Beginning</th>
-                                <th>Deposit</th>
-                                <th>Profit</th>
-                                <th>Withdrawal</th>
-                                <th>Tax</th>
-                                <th>Ending</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {report.weekly_breakdown.map((w, i) => (
-                                <tr key={i}>
-                                  <td>{w.week}</td>
-                                  <td>${w.beginning_balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                  <td>${w.additional_deposit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                  <td>${w.profit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                  <td>${w.withdrawal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                  <td>${w.tax_deduction.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                  <td>${w.ending_balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                </tr>
-                              ))}
-
-                              {showTotals && (
-                                <tr className={styles.totalRow}>
-                                  <td><strong>Total</strong></td>
-                                  <td>—</td>
-                                  <td><strong>${report.weekly_breakdown.reduce((acc, w) => acc + w.additional_deposit, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
-                                  <td><strong>${report.weekly_breakdown.reduce((acc, w) => acc + w.profit, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
-                                  <td><strong>${report.weekly_breakdown.reduce((acc, w) => acc + w.withdrawal, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
-                                  <td><strong>${report.weekly_breakdown.reduce((acc, w) => acc + w.tax_deduction, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
-                                  <td>—</td>
-                                </tr>
-                              )}
-                            </tbody>
-                          </table>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
-            <div className={styles.pagination}>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i + 1)}
-                  className={`${styles.pageButton} ${currentPage === i + 1 ? styles.activePage : ""}`}
-                >
-                  {i + 1}
-                </button>
-              ))}
+          <div className={styles.card}>
+            <h2 className={styles.title}>📊 Download or View Financial Report</h2>
+            <div className={styles.filters}>
+              <input type="text" placeholder="Filter by Username" value={username} onChange={(e) => setUsername(e.target.value)} className={styles.input} />
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={styles.input} />
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className={styles.input} />
+              <button onClick={exportCSV} className={styles.button} disabled={selectedReportIds.length === 0}>⬇ Export CSV</button>
+              <button onClick={downloadPDF} className={styles.button} disabled={selectedReportIds.length === 0}>🧾 Export PDF</button>
+              <button onClick={fetchReports} className={styles.button}>🔍 Search Reports</button>
+            </div>
+            <div style={{ marginTop: "0.5rem" }}>
+              <label>
+                <input type="checkbox" checked={showTotals} onChange={() => setShowTotals(!showTotals)} style={{ marginRight: "0.5rem" }} /> Show Totals Row
+              </label>
             </div>
           </div>
-        )}
 
-        {!loading && reports.length === 0 && (
-          <div className={styles.noData}><p>📄 No reports found. Try different filters!</p></div>
-        )}
+          {loading && <div className={styles.spinnerContainer}><div className={styles.spinner}></div><p>Loading reports...</p></div>}
+
+          {!loading && currentReports.length > 0 && (
+            <div className={styles.tableContainer}>
+              {selectedReportIds.length > 0 && (
+                <div className={styles.selectionSummary}>
+                  <p>
+                    ✅ <strong>Selected Analyses:</strong> {selectedReportIds.join(", ")}
+                  </p>
+                </div>
+              )}
+
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Description</th>
+                    <th>Principal</th>
+                    <th>Ending Balance</th>
+                    <th>Created</th>
+                    <th>View</th>
+                    <th>Select</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentReports.map((report) => (
+                    <Fragment key={report.id}>
+                      <tr>
+                        <td>{report.id}</td>
+                        <td>{report.username}</td>
+                        <td>{report.description}</td>
+                        <td>${report.principal.toLocaleString()}</td>
+                        <td>${report.ending_balance?.toLocaleString() || "-"}</td>
+                        <td>{toLocalDateTime(report.created_at)}</td>
+                        <td>
+                          <button onClick={() => toggleExpand(report.id)} className={styles.selectButton}>
+                            {expandedReports.includes(report.id) ? "Hide" : "View"}
+                          </button>
+                        </td>
+                        <td>
+                          <input
+                            type="checkbox"
+                            checked={selectedReportIds.includes(report.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedReportIds((prev) => [...prev, report.id]);
+                              } else {
+                                setSelectedReportIds((prev) => prev.filter((id) => id !== report.id));
+                              }
+                            }}
+                          />
+                        </td>
+                      </tr>
+                      {expandedReports.includes(report.id) && (
+                        <tr>
+                          <td colSpan={8}>
+                            <table className={styles.innerTable}>
+                              <thead>
+                                <tr>
+                                  <th>Week</th>
+                                  <th>Beginning</th>
+                                  <th>Deposit</th>
+                                  <th>Profit</th>
+                                  <th>Withdrawal</th>
+                                  <th>Tax</th>
+                                  <th>Ending</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {report.weekly_breakdown.map((w, i) => (
+                                  <tr key={i}>
+                                    <td>{w.week}</td>
+                                    <td>${w.beginning_balance.toFixed(2)}</td>
+                                    <td>${w.additional_deposit.toFixed(2)}</td>
+                                    <td>${w.profit.toFixed(2)}</td>
+                                    <td>${w.withdrawal.toFixed(2)}</td>
+                                    <td>${w.tax_deduction.toFixed(2)}</td>
+                                    <td>${w.ending_balance.toFixed(2)}</td>
+                                  </tr>
+                                ))}
+                                {showTotals && (
+                                  <tr className={styles.totalRow}>
+                                    <td><strong>Total</strong></td>
+                                    <td>—</td>
+                                    <td><strong>${report.weekly_breakdown.reduce((acc, w) => acc + w.additional_deposit, 0).toFixed(2)}</strong></td>
+                                    <td><strong>${report.weekly_breakdown.reduce((acc, w) => acc + w.profit, 0).toFixed(2)}</strong></td>
+                                    <td><strong>${report.weekly_breakdown.reduce((acc, w) => acc + w.withdrawal, 0).toFixed(2)}</strong></td>
+                                    <td><strong>${report.weekly_breakdown.reduce((acc, w) => acc + w.tax_deduction, 0).toFixed(2)}</strong></td>
+                                    <td>—</td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  ))}
+                </tbody>
+              </table>
+              <div className={styles.pagination}>
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`${styles.pageButton} ${currentPage === i + 1 ? styles.activePage : ""}`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!loading && reports.length === 0 && (
+            <div className={styles.noData}><p>📄 No reports found. Try different filters!</p></div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
+

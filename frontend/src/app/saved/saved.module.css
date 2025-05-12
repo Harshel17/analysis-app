@@ -154,3 +154,14 @@
 .purpleText {
   color: #7c3aed;
 }
+
+.pageWrapper {
+  display: flex;
+  flex-direction: row;
+}
+
+.contentArea {
+  flex-grow: 1;
+  padding-left: 220px; /* Adjust based on your navbar width */
+  padding-right: 20px;
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import config from "@/utils/config";
 import Navbar from "@/app/components/navbar";
@@ -44,18 +44,15 @@ export default function ManagerAnalysisDetails() {
   const [error, setError] = useState<string | null>(null);
   const [fromQuery, setFromQuery] = useState<string | null>(null);
 
-useEffect(() => {
-  if (typeof window !== "undefined") {
-    const urlParams = new URLSearchParams(window.location.search);
-    const from = urlParams.get("from");
-    setFromQuery(from);
-  }
-}, []);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const from = urlParams.get("from");
+      setFromQuery(from);
+    }
+  }, []);
 
-
-const backLink = fromQuery === "queries" ? "/manager/queries" : "/manager";
-
-
+  const backLink = fromQuery === "queries" ? "/manager/queries" : "/manager";
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   const format = (val: number) =>
@@ -133,35 +130,29 @@ const backLink = fromQuery === "queries" ? "/manager/queries" : "/manager";
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-  
+
       await axios.post(
         `${config}/analysis/move-to-permanent/${id}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-  
-      // ✅ Clear old results
+
       setData([]);
-  
-      // ✅ Then refetch fresh
       await fetchMetadataAndResults();
-  
       alert("✅ Changes saved and recalculated successfully!");
       setEditMode(false);
     } catch (err) {
       alert("🚨 Failed to save changes. Please try again.");
     }
   };
-  
 
   return (
-    <div className={styles.container}>
+    <div style={{ display: "flex", flexDirection: "row" }}>
       <Navbar />
       <div className={styles.inner}>
-      <button onClick={() => router.push(backLink)} className={styles.backBtn}>
-  ← Return to {fromQuery === "queries" ? "Queries" : "Dashboard"}
-</button>
-
+        <button onClick={() => router.push(backLink)} className={styles.backBtn}>
+          ← Return to {fromQuery === "queries" ? "Queries" : "Dashboard"}
+        </button>
 
         <h1 className={styles.heading}>📊 Analysis Details</h1>
 
@@ -190,17 +181,7 @@ const backLink = fromQuery === "queries" ? "/manager/queries" : "/manager";
 
                   {editMode ? (
                     <>
-                      {[
-                        "description",
-                        "principal",
-                        "interest_week",
-                        "projection_period",
-                        "tax_rate",
-                        "deposit_frequency",
-                        "additional_deposit",
-                        "regular_withdrawal",
-                        "withdrawal_frequency",
-                      ].map((field) => (
+                      {["description", "principal", "interest_week", "projection_period", "tax_rate", "deposit_frequency", "additional_deposit", "regular_withdrawal", "withdrawal_frequency"].map((field) => (
                         <div key={field} className={styles.cardRow}>
                           <span>{field.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}:</span>
                           <input

@@ -1,150 +1,173 @@
 /* Container for the entire page */
 .container {
-    width: 100%;
-    padding: 40px;
-    background: linear-gradient(to bottom, white, #ebf4ff);
-  }
-  
-  /* Header Styling */
-  .heading {
-    font-size: 2.5rem;
-    text-align: center;
-    font-weight: bold;
-    margin-bottom: 2rem;
-    color: #1f2937;
-  }
-  
-  /* Filter Box Styling */
-  .filterBox {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 32px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  }
-  
-  /* Filter Box Title */
-  .filterTitle {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    color: #1f2937;
-  }
-  
-  /* Layout for filter fields */
-  .filters {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-  }
-  
-  /* General Input and Button Styles */
-  .input,
-  .button {
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 0.9rem;
-  }
-  
-  .button {
-    background-color: #f3f4f6;
-    font-weight: 500;
-    cursor: pointer;
-  }
-  
-  .button:hover {
-    background-color: #e5e7eb;
-  }
-  
-  /* Table Box Container */
-  .tableBox {
-    width: 100%;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    overflow-x: auto;
-  }
-  
-  /* Table Styling */
-  .table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  
-  .table thead {
-    background-color: #f3f4f6;
-    color: #1f2937;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-  }
-  
-  .table th,
-  .table td {
-    padding: 14px 18px;
-    border-bottom: 1px solid #e5e7eb;
-    text-align: left;
-    vertical-align: middle;
-  }
-  
-  .table tbody tr:nth-child(even) {
-    background-color: #f9fafb;
-  }
-  
-  .table tbody tr:hover {
-    background-color: #eef6ff;
-    transition: background 0.2s ease-in-out;
-  }
-  
-  /* Action Button Styling */
-  .actionBtn {
-    background-color: #3b82f6;
-    color: white;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-weight: 500;
-    font-size: 0.875rem;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    white-space: nowrap;
-  }
-  
-  .actionBtn:hover {
-    background-color: #2563eb;
-  }
-  
-  .pageBtn {
-    padding: 8px 12px;
-    background-color: #f3f4f6;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-weight: 500;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-  }
-  
-  .pageBtn:hover:not(.activePage) {
-    background-color: #e5e7eb;
-  }
-  
-  .pageBtn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  .activePage {
-    background-color: #3b82f6;
-    color: white;
-    border-color: #3b82f6;
-  }
-  
+  width: 100%;
+  padding: 40px;
+  background: linear-gradient(to bottom, white, #ebf4ff);
+}
+
+/* Header Styling */
+.heading {
+  font-size: 2.5rem;
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  color: #1f2937;
+}
+
+/* Filter Box Styling */
+.filterBox {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Filter Box Title */
+.filterTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  color: #1f2937;
+}
+
+/* Layout for filter fields */
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+/* General Input and Button Styles */
+.input,
+.button {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.button {
+  background-color: #f3f4f6;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: #e5e7eb;
+}
+
+/* Table Box Container */
+.tableBox {
+  width: 100%;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+}
+
+/* Table Styling */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.table thead {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.table th,
+.table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+.table tbody tr:hover {
+  background-color: #eef6ff;
+  transition: background 0.2s ease-in-out;
+}
+
+/* Action Button Styling */
+.actionBtn {
+  background-color: #3b82f6;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.actionBtn:hover {
+  background-color: #2563eb;
+}
+
+.pageBtn {
+  padding: 8px 12px;
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.pageBtn:hover:not(.activePage) {
+  background-color: #e5e7eb;
+}
+
+.pageBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.activePage {
+  background-color: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.table {
+  width: 100%;
+  min-width: 900px; /* ✅ ensures horizontal scroll activates */
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+ .pageWrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+}
+
+.mainContent {
+  flex-grow: 1;
+  padding: 2rem;
+  overflow-x: auto;
+}

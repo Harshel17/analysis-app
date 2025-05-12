@@ -1,4 +1,13 @@
-// ✅ Add or replace this at the top of the file
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import styles from "./create.module.css";
+import config from '@/utils/config';
+import { jwtDecode } from "jwt-decode";
+import Navbar from "@/app/components/navbar";
+
+// ✅ Interface for token
 interface DecodedToken {
   sub?: string;
   username?: string;
@@ -8,27 +17,14 @@ interface DecodedToken {
   exp?: number;
 }
 
-"use client";
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import styles from "./create.module.css";
-import config from '@/utils/config';
-import { jwtDecode } from "jwt-decode";
-import Navbar from "@/app/components/navbar";
-
-
-// 👈 this always works in CJS environment
-
+// ✅ Decode JWT and extract username
 const getUsernameFromToken = (): string | null => {
   const token = localStorage.getItem("token");
   if (!token) return null;
 
   try {
     const decoded: DecodedToken = jwtDecode(token);
-    console.log("✅ Decoded Token:", decoded);
-    const rawName = decoded.username || null;
-    return rawName;
-
+    return decoded.username || null;
   } catch (e) {
     console.error("Token decode failed", e);
     return null;
@@ -53,13 +49,11 @@ export default function CreateAnalysis() {
   const [newAnalysisId, setNewAnalysisId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // ✅ Username state and effect
   const [username, setUsername] = useState<string | null>(null);
 
+  // ✅ Load username on first render
   useEffect(() => {
     const name = getUsernameFromToken();
-    console.log("👤 Logged in user:", name);
     if (name) setUsername(name);
   }, []);
 
@@ -84,12 +78,8 @@ export default function CreateAnalysis() {
       tax_rate: parseFloat(formData.tax_rate) || 0,
     };
 
-    console.log("➡️ Sending to:", `${config}/analysis/`);
-    console.log("➡️ Payload:", formattedData);
-
     try {
       const token = localStorage.getItem("token");
-
       if (!token) {
         setError("You're not logged in. Please login to continue.");
         setIsLoading(false);
@@ -106,41 +96,29 @@ export default function CreateAnalysis() {
       });
 
       const data = await response.json();
-      console.log("API Response:", data);
-
-      if (!response.ok || !data.id) {
-        throw new Error("Failed to retrieve analysis ID");
-      }
+      if (!response.ok || !data.id) throw new Error("Failed to retrieve analysis ID");
 
       setNewAnalysisId(data.id);
-
-      setTimeout(() => {
-        router.push(`/results?id=${data.id}`);
-      }, 2000);
-
+      setTimeout(() => router.push(`/results?id=${data.id}`), 2000);
     } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error:", error.message);
-        setError(error.message);
-      } else {
-        console.error("Unknown error:", error);
-        setError("Something went wrong.");
-      }
+      if (error instanceof Error) setError(error.message);
+      else setError("Something went wrong.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <>
+    <div style={{ display: "flex", flexDirection: "row" }}>
+      {/* ✅ Navbar pushed to right */}
       <Navbar />
       <div className={styles.container}>
-        {/* ✅ Username Top Right */}
+        {/* ✅ Welcome banner top right */}
         {username && (
           <div style={{
             position: "absolute",
             top: "20px",
-            right: "20px",
+            right: "240px",
             display: "flex",
             alignItems: "center",
             gap: "12px",
@@ -151,17 +129,20 @@ export default function CreateAnalysis() {
             fontWeight: "bold"
           }}>
             👋 Welcome, {username}
-            <button onClick={() => {
-              localStorage.removeItem("token");
-              window.location.href = "/auth/login"; // ✅ Redirect to login
-            }} style={{
-              background: "#ef4444",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              padding: "4px 8px",
-              cursor: "pointer"
-            }}>
+            <button
+              onClick={() => {
+                localStorage.removeItem("token");
+                window.location.href = "/auth/login";
+              }}
+              style={{
+                background: "#ef4444",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                padding: "4px 8px",
+                cursor: "pointer"
+              }}
+            >
               Logout
             </button>
           </div>
@@ -177,11 +158,7 @@ export default function CreateAnalysis() {
           </div>
         )}
 
-        {error && (
-          <div className={styles.error}>
-            ❌ {error}
-          </div>
-        )}
+        {error && <div className={styles.error}>❌ {error}</div>}
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <input name="description" placeholder="Description" value={formData.description} onChange={handleChange} className={styles.input} required />
@@ -199,6 +176,6 @@ export default function CreateAnalysis() {
           </button>
         </form>
       </div>
-    </>
+    </div>
   );
 }

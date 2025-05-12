@@ -3,89 +3,67 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { getUsernameFromToken, isManagerFromToken } from "@/utils/auth";
+import styles from "./Navbar.module.css";
 
 export default function Navbar() {
   const [username, setUsername] = useState<string | null>(null);
   const [isManager, setIsManager] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    const name = getUsernameFromToken();
-    const managerStatus = isManagerFromToken();
-    setUsername(name);
-    setIsManager(managerStatus);
+    setUsername(getUsernameFromToken());
+    setIsManager(isManagerFromToken());
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/auth/login";
+  };
+
   return (
-    <nav
-      style={{
-        backgroundColor: "#1f2937", // dark blue-gray
-        color: "white",
-        padding: "1rem 2rem",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        position: "sticky",
-        top: 0,
-        zIndex: 50,
-      }}
-    >
-      {/* 👈 LEFT: App title + links underneath */}
-      <div>
-        <div style={{ fontSize: "1.2rem", fontWeight: "bold" }}>
-          📊 Analysis App
+    <>
+      {/* Top navbar */}
+      <div className={styles.navHeader}>
+        <div className={styles.logoWrapper}>
+          <div className={styles.hamburger} onClick={() => setIsOpen(!isOpen)}>
+            ☰
+          </div>
+          <div className={styles.logo}>📊 Analysis App</div>
         </div>
-        <div style={{ display: "flex", gap: "1.5rem", marginTop: "0.5rem" }}>
-          <Link href="/" style={{ color: "#fff", textDecoration: "none" }}>Home</Link>
-          <Link href="/create" style={{ color: "#fff", textDecoration: "none" }}>Create</Link>
-          <Link href="/saved" style={{ color: "#fff", textDecoration: "none" }}>Saved</Link>
+
+        {username && (
+  <div className={styles.topRightUser}>
+    👋 {username}
+    <button className={styles.logoutButton} onClick={handleLogout}>
+      Logout
+    </button>
+  </div>
+)}
+
+
+      </div>
+
+      {/* Sidebar Drawer */}
+      <div className={`${styles.sidebar} ${isOpen ? styles.open : ""}`}>
+        <nav className={styles.links}>
+          <Link href="/" className={styles.link} onClick={() => setIsOpen(false)}>Home</Link>
+          <Link href="/create" className={styles.link} onClick={() => setIsOpen(false)}>Create</Link>
+          <Link href="/saved" className={styles.link} onClick={() => setIsOpen(false)}>Saved</Link>
 
           {isManager && (
             <>
-              <Link href="/manager" style={{ color: "#22c55e", textDecoration: "none" }}>
-                Manager Dashboard
-              </Link>
-              <Link href="/manager/reports" style={{ color: "#22c55e", textDecoration: "none" }}>
-                Reports
-              </Link>
-              <Link href="/manager/queries" style={{ color: "#22c55e", textDecoration: "none" }}>
-                Queries
-              </Link>
+              <Link href="/manager" className={styles.managerLink} onClick={() => setIsOpen(false)}>Manager Dashboard</Link>
+              <Link href="/manager/reports" className={styles.managerLink} onClick={() => setIsOpen(false)}>Reports</Link>
+              <Link href="/manager/queries" className={styles.managerLink} onClick={() => setIsOpen(false)}>Queries</Link>
             </>
           )}
+        </nav>
+
+        {/* ✅ Only Logout stays in sidebar */}
+        <div className={styles.userSection}>
+          <button className={styles.logout} onClick={handleLogout}>Logout</button>
         </div>
       </div>
-
-      {/* 👉 RIGHT: User + Logout */}
-      {username && (
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{
-            background: "#f3f4f6",
-            color: "#111827",
-            padding: "6px 10px",
-            borderRadius: "8px",
-            fontSize: "0.9rem",
-            fontWeight: "bold"
-          }}>
-            👋 Welcome, {username}
-          </span>
-          <button
-            onClick={() => {
-              localStorage.removeItem("token");
-              window.location.href = "/auth/login";
-            }}
-            style={{
-              backgroundColor: "#ef4444",
-              color: "#fff",
-              border: "none",
-              padding: "6px 12px",
-              borderRadius: "6px",
-              cursor: "pointer"
-            }}
-          >
-            Logout
-          </button>
-        </div>
-      )}
-    </nav>
+    </>
   );
-} 
+}
