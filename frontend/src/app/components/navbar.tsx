@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { getUsernameFromToken, isManagerFromToken } from "@/utils/auth";
-import styles from "./Navbar.module.css";
+import styles from "./navbar.module.css";
 
 export default function Navbar() {
   const [username, setUsername] = useState<string | null>(null);
