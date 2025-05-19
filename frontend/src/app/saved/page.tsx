@@ -144,9 +144,11 @@ export default function SavedAnalysisPage() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "row" }}>
+    <div className={styles.pageWrapper}>
       <Navbar />
-      <div className={styles.container}>
+      <div className={`${styles.container} ${styles.withSidebar}`}>
+
+  
         <h2 className={styles.heading}>🔍 Search Saved Analysis</h2>
 
         <div className={styles.searchBox}>

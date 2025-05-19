@@ -7,7 +7,6 @@ import config from '@/utils/config';
 import { jwtDecode } from "jwt-decode";
 import Navbar from "@/app/components/navbar";
 
-// ✅ Interface for token
 interface DecodedToken {
   sub?: string;
   username?: string;
@@ -17,7 +16,6 @@ interface DecodedToken {
   exp?: number;
 }
 
-// ✅ Decode JWT and extract username
 const getUsernameFromToken = (): string | null => {
   const token = localStorage.getItem("token");
   if (!token) return null;
@@ -51,7 +49,6 @@ export default function CreateAnalysis() {
   const [error, setError] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
 
-  // ✅ Load username on first render
   useEffect(() => {
     const name = getUsernameFromToken();
     if (name) setUsername(name);
@@ -110,10 +107,8 @@ export default function CreateAnalysis() {
 
   return (
     <div style={{ display: "flex", flexDirection: "row" }}>
-      {/* ✅ Navbar pushed to right */}
       <Navbar />
       <div className={styles.container}>
-        {/* ✅ Welcome banner top right */}
         {username && (
           <div style={{
             position: "absolute",
@@ -161,20 +156,56 @@ export default function CreateAnalysis() {
         {error && <div className={styles.error}>❌ {error}</div>}
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          <input name="description" placeholder="Description" value={formData.description} onChange={handleChange} className={styles.input} required />
-          <input name="principal" type="number" placeholder="Principal" value={formData.principal} onChange={handleChange} className={styles.input} required />
-          <input name="interest_week" type="number" placeholder="Interest per Week (%)" value={formData.interest_week} onChange={handleChange} className={styles.input} required />
-          <input name="projection_period" type="number" placeholder="Projection Period (Weeks)" value={formData.projection_period} onChange={handleChange} className={styles.input} required />
-          <input name="tax_rate" type="number" placeholder="Tax Rate (%)" value={formData.tax_rate} onChange={handleChange} className={styles.input} />
-          <input name="additional_deposit" type="number" placeholder="Additional Deposit" value={formData.additional_deposit} onChange={handleChange} className={styles.input} />
-          <input name="deposit_frequency" type="number" placeholder="Deposit Frequency (Weeks)" value={formData.deposit_frequency} onChange={handleChange} className={styles.input} required />
-          <input name="regular_withdrawal" type="number" placeholder="Regular Withdrawal" value={formData.regular_withdrawal} onChange={handleChange} className={styles.input} />
-          <input name="withdrawal_frequency" type="number" placeholder="Withdrawal Frequency (Weeks)" value={formData.withdrawal_frequency} onChange={handleChange} className={styles.input} required />
+  <div className={styles.formGroup}>
+    <label className={styles.label}>Description</label>
+    <input name="description" className={styles.input} value={formData.description} onChange={handleChange} required />
+  </div>
 
-          <button type="submit" className={styles.button} disabled={isLoading}>
-            {isLoading ? "Processing..." : "Start Analysis"}
-          </button>
-        </form>
+  <div className={styles.formGroup}>
+    <label className={styles.label}>Principal</label>
+    <input name="principal" type="number" className={styles.input} value={formData.principal} onChange={handleChange} required />
+  </div>
+
+  <div className={styles.formGroup}>
+    <label className={styles.label}>Interest per Week (%)</label>
+    <input name="interest_week" type="number" className={styles.input} value={formData.interest_week} onChange={handleChange} required />
+  </div>
+
+  <div className={styles.formGroup}>
+    <label className={styles.label}>Projection Period (Weeks)</label>
+    <input name="projection_period" type="number" className={styles.input} value={formData.projection_period} onChange={handleChange} required />
+  </div>
+
+  <div className={styles.formGroup}>
+    <label className={styles.label}>Tax Rate (%)</label>
+    <input name="tax_rate" type="number" className={styles.input} value={formData.tax_rate} onChange={handleChange} />
+  </div>
+
+  <div className={styles.formGroup}>
+    <label className={styles.label}>Additional Deposit</label>
+    <input name="additional_deposit" type="number" className={styles.input} value={formData.additional_deposit} onChange={handleChange} />
+  </div>
+
+  <div className={styles.formGroup}>
+    <label className={styles.label}>Deposit Frequency (Weeks)</label>
+    <input name="deposit_frequency" type="number" className={styles.input} value={formData.deposit_frequency} onChange={handleChange} required />
+  </div>
+
+  <div className={styles.formGroup}>
+    <label className={styles.label}>Regular Withdrawal</label>
+    <input name="regular_withdrawal" type="number" className={styles.input} value={formData.regular_withdrawal} onChange={handleChange} />
+  </div>
+
+  <div className={styles.formGroup}>
+    <label className={styles.label}>Withdrawal Frequency (Weeks)</label>
+    <input name="withdrawal_frequency" type="number" className={styles.input} value={formData.withdrawal_frequency} onChange={handleChange} required />
+  </div>
+
+  <button type="submit" className={styles.button} disabled={isLoading}>
+    {isLoading ? "Processing..." : "Start Analysis"}
+  </button>
+</form>
+
       </div>
     </div>
   );
