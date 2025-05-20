@@ -58,60 +58,54 @@ export default function SavedAnalysisPage() {
   const isManager = isManagerFromToken();
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+  
     const token = localStorage.getItem("token");
     if (!token) return;
   
     const fetchAnalyses = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-    
       try {
-        setError(null); // clear previous errors
-        let url = "";
-    
-        if (selectedUser && selectedUser.trim() !== "") {
-          url = `${config}/saved-analysis?username=${selectedUser}`;
-        } else if (isManager) {
-          url = `${config}/saved-analysis`; // get all for manager
-        } else {
-          url = `${config}/saved-analysis`; // regular user
-        }
-    
+        setError(null);
+        let url = selectedUser && selectedUser.trim() !== ""
+          ? `${config}/saved-analysis?username=${selectedUser}`
+          : `${config}/saved-analysis`;
+  
         const res = await fetch(url, {
           headers: { Authorization: `Bearer ${token}` },
         });
-    
+  
         if (!res.ok) throw new Error(`Failed with status ${res.status}`);
         const data = await res.json();
-    
+  
         if (Array.isArray(data)) {
           const sorted = [...data].sort(
-            (a, b) =>
-              new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
           );
           setUserAnalyses(sorted);
         } else {
-          console.error("Unexpected response (not array):", data);
+          console.error("Unexpected response:", data);
           setUserAnalyses([]);
         }
       } catch (err) {
         console.error("❌ Failed to load analyses:", err);
         setUserAnalyses([]);
-        // Don't show error unless user actually clicks Search or filters
         if (selectedUser || !isManager) {
           setError("Failed to load analyses");
+        } else {
+          setError(null);
         }
       }
     };
-    
   
     fetchAnalyses();
   }, [selectedUser]);
   
+  
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const token = localStorage.getItem("token");
     if (!token || !isManager) return;
-
+  
     fetch(`${config}/users`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -119,6 +113,7 @@ export default function SavedAnalysisPage() {
       .then((data) => setUserList(data))
       .catch((err) => console.error("Failed to load users", err));
   }, []);
+  
 
   const fetchResults = async () => {
     if (!searchId) return;
