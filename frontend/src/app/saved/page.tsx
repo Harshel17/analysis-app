@@ -11,6 +11,8 @@ import Navbar from "@/app/components/navbar";
 import { useRouter } from "next/navigation";
 import { toLocalDateTime } from "@/utils/date";
 
+// Type declarations
+
 type ResultRow = {
   week: number;
   beginning_balance: number;
@@ -59,24 +61,29 @@ export default function SavedAnalysisPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-  
+    const name = getUsernameFromToken();
+    if (name) setUsername(name);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     const token = localStorage.getItem("token");
     if (!token) return;
-  
+
     const fetchAnalyses = async () => {
       try {
         setError(null);
         let url = selectedUser && selectedUser.trim() !== ""
           ? `${config}/saved-analysis?username=${selectedUser}`
           : `${config}/saved-analysis`;
-  
+
         const res = await fetch(url, {
           headers: { Authorization: `Bearer ${token}` },
         });
-  
+
         if (!res.ok) throw new Error(`Failed with status ${res.status}`);
         const data = await res.json();
-  
+
         if (Array.isArray(data)) {
           const sorted = [...data].sort(
             (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -96,16 +103,15 @@ export default function SavedAnalysisPage() {
         }
       }
     };
-  
+
     fetchAnalyses();
   }, [selectedUser]);
-  
-  
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const token = localStorage.getItem("token");
     if (!token || !isManager) return;
-  
+
     fetch(`${config}/users`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -113,11 +119,10 @@ export default function SavedAnalysisPage() {
       .then((data) => setUserList(data))
       .catch((err) => console.error("Failed to load users", err));
   }, []);
-  
 
   const fetchResults = async () => {
     if (!searchId) return;
-    const token = localStorage.getItem("token");
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (!token) return setError("Not authenticated");
 
     try {
