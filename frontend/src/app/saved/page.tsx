@@ -6,7 +6,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import styles from './saved.module.css';
 import config from '@/utils/config';
-import { getUsernameFromToken } from "@/utils/auth";
+import { getUsernameFromToken, isManagerFromToken } from "@/utils/auth";
 import Navbar from "@/app/components/navbar";
 import { useRouter } from "next/navigation";
 import { toLocalDateTime } from "@/utils/date";
@@ -36,6 +36,11 @@ interface AnalysisData {
   updated_at?: string;
 }
 
+interface User {
+  id: number;
+  username: string;
+}
+
 export default function SavedAnalysisPage() {
   const router = useRouter();
   const [searchId, setSearchId] = useState("");
@@ -47,28 +52,72 @@ export default function SavedAnalysisPage() {
   const [filterMode, setFilterMode] = useState<"all" | "text" | "date">("all");
   const [filterText, setFilterText] = useState("");
   const [filterDate, setFilterDate] = useState("");
+  const [userList, setUserList] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<string>("");
 
-  useEffect(() => {
-    const name = getUsernameFromToken();
-    if (name) setUsername(name);
-  }, []);
+  const isManager = isManagerFromToken();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
+  
+    const fetchAnalyses = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+    
+      try {
+        setError(null); // clear previous errors
+        let url = "";
+    
+        if (selectedUser && selectedUser.trim() !== "") {
+          url = `${config}/saved-analysis?username=${selectedUser}`;
+        } else if (isManager) {
+          url = `${config}/saved-analysis`; // get all for manager
+        } else {
+          url = `${config}/saved-analysis`; // regular user
+        }
+    
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+    
+        if (!res.ok) throw new Error(`Failed with status ${res.status}`);
+        const data = await res.json();
+    
+        if (Array.isArray(data)) {
+          const sorted = [...data].sort(
+            (a, b) =>
+              new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+          setUserAnalyses(sorted);
+        } else {
+          console.error("Unexpected response (not array):", data);
+          setUserAnalyses([]);
+        }
+      } catch (err) {
+        console.error("❌ Failed to load analyses:", err);
+        setUserAnalyses([]);
+        // Don't show error unless user actually clicks Search or filters
+        if (selectedUser || !isManager) {
+          setError("Failed to load analyses");
+        }
+      }
+    };
+    
+  
+    fetchAnalyses();
+  }, [selectedUser]);
+  
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token || !isManager) return;
 
-    fetch(`${config}/saved-analysis`, {
+    fetch(`${config}/users`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
-      .then(data => {
-        const sorted = [...data].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        setUserAnalyses(sorted);
-      })
-      .catch((err) => {
-        console.error("Failed to load user's analyses", err);
-        setError("Failed to load analyses");
-      });
+      .then((data) => setUserList(data))
+      .catch((err) => console.error("Failed to load users", err));
   }, []);
 
   const fetchResults = async () => {
@@ -147,9 +196,23 @@ export default function SavedAnalysisPage() {
     <div className={styles.pageWrapper}>
       <Navbar />
       <div className={`${styles.container} ${styles.withSidebar}`}>
-
-  
         <h2 className={styles.heading}>🔍 Search Saved Analysis</h2>
+
+        {isManager && (
+          <div style={{ marginBottom: "1rem" }}>
+            <label><strong>Filter by User: </strong></label>
+            <select
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+              style={{ padding: "0.4rem", borderRadius: "6px", border: "1px solid #ccc", marginLeft: "1rem" }}
+            >
+              <option value="">-- Select User --</option>
+              {userList.map((user) => (
+                <option key={user.id} value={user.username}>{user.username}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className={styles.searchBox}>
           <input
@@ -192,14 +255,14 @@ export default function SavedAnalysisPage() {
           <div className={styles.analysisList}>
             <h3 className={styles.listHeading}>📁 Your Analyses:</h3>
             {userAnalyses.filter((a) => {
-              if (filterMode === "text") {
-                return a.description.toLowerCase().includes(filterText.toLowerCase()) || String(a.id).includes(filterText);
-              }
-              if (filterMode === "date") {
-                return a.created_at?.startsWith(filterDate);
-              }
-              return true;
-            }).map((a) => (
+  if (filterMode === "text") {
+    return a.description.toLowerCase().includes(filterText.toLowerCase()) || String(a.id).includes(filterText);
+  }
+  if (filterMode === "date") {
+    return a.created_at?.startsWith(filterDate);
+  }
+  return true;
+}).map((a) => (
               <div key={a.id} className={styles.card} onClick={() => setSearchId(String(a.id))}>
                 <p><strong>ID:</strong> {a.id}</p>
                 <p><strong>Description:</strong> {a.description}</p>

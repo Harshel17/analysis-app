@@ -7,10 +7,13 @@ import logging
 from pydantic import BaseModel
 from app.utils.auth_utils import get_current_user
 from app.models import User
+from app.schemas import UserOut
 from app.schemas import AnalysisCreate
 from ..oauth import get_current_user
 from datetime import datetime
 import pytz
+from fastapi import Query
+from typing import Optional
 
 # ✅ Define Router
 router = APIRouter()
@@ -134,9 +137,19 @@ def get_permanent_results(analysis_id: int, db: Session = Depends(get_db), curre
     return results
 
 @router.get("/saved-analysis", response_model=List[schemas.AnalysisOut])
-def get_saved_analyses(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_saved_analyses(
+    username: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     if current_user.is_manager:
+        if username:
+            user = db.query(User).filter(User.username == username).first()
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+            return db.query(models.AnalysisParameter).filter(models.AnalysisParameter.user_id == user.id).all()
         return db.query(models.AnalysisParameter).all()
+
     return db.query(models.AnalysisParameter).filter(models.AnalysisParameter.user_id == current_user.id).all()
 
 @router.post("/move-to-permanent/{analysis_id}")
@@ -272,3 +285,9 @@ def get_all_analyses_for_manager(
 
     analyses = db.query(models.AnalysisParameter).all()
     return analyses
+
+@router.get("/users", response_model=List[UserOut])
+def get_users(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not current_user.is_manager:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    return db.query(User).all()
