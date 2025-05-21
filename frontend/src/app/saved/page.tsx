@@ -60,13 +60,15 @@ export default function SavedAnalysisPage() {
   const isManager = isManagerFromToken();
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const name = getUsernameFromToken();
-    if (name) setUsername(name);
+    if (typeof window !== "undefined") {
+      const name = getUsernameFromToken();
+      if (name) setUsername(name);
+    }
   }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
     const token = localStorage.getItem("token");
     if (!token) return;
 
@@ -109,6 +111,7 @@ export default function SavedAnalysisPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
     const token = localStorage.getItem("token");
     if (!token || !isManager) return;
 
@@ -121,9 +124,11 @@ export default function SavedAnalysisPage() {
   }, []);
 
   const fetchResults = async () => {
-    if (!searchId) return;
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    if (!token) return setError("Not authenticated");
+    if (!searchId || !token) {
+      setError("Not authenticated");
+      return;
+    }
 
     try {
       setError(null);
@@ -197,7 +202,6 @@ export default function SavedAnalysisPage() {
       <Navbar />
       <div className={`${styles.container} ${styles.withSidebar}`}>
         <h2 className={styles.heading}>🔍 Search Saved Analysis</h2>
-
         {isManager && (
           <div style={{ marginBottom: "1rem" }}>
             <label><strong>Filter by User: </strong></label>
