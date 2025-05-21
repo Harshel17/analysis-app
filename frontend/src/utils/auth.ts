@@ -10,6 +10,8 @@ interface DecodedToken {
 }
 
 export const getUsernameFromToken = (): string | null => {
+  if (typeof window === "undefined") return null; // ✅ SSR-safe check
+
   const token = localStorage.getItem("token");
   if (!token) return null;
 
@@ -24,6 +26,8 @@ export const getUsernameFromToken = (): string | null => {
 };
 
 export const isManagerFromToken = (): boolean => {
+  if (typeof window === "undefined") return false; // ✅ Prevent server execution
+
   const token = localStorage.getItem("token");
   if (!token) return false;
 
@@ -35,3 +39,4 @@ export const isManagerFromToken = (): boolean => {
     return false;
   }
 };
+

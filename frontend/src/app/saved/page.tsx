@@ -1,6 +1,7 @@
 "use client";
 
 export const dynamic = "force-dynamic";
+
 import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
 import jsPDF from "jspdf";
@@ -11,7 +12,6 @@ import { getUsernameFromToken, isManagerFromToken } from "@/utils/auth";
 import Navbar from "@/app/components/navbar";
 import { useRouter } from "next/navigation";
 import { toLocalDateTime } from "@/utils/date";
-
 
 
 // Type declarations
@@ -60,58 +60,63 @@ export default function SavedAnalysisPage() {
   const [userList, setUserList] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<string>("");
 
-  const isManager = isManagerFromToken();
+  const [isManager, setIsManager] = useState(false);
+
+useEffect(() => {
+  if (typeof window !== "undefined") {
+    setIsManager(isManagerFromToken());
+  }
+}, []);
+
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const name = getUsernameFromToken();
-      if (name) setUsername(name);
-    }
-  }, []);
+  if (typeof window === "undefined") return;
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  const token = localStorage.getItem("token");
+  if (!token) return;
 
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    const fetchAnalyses = async () => {
-      try {
-        setError(null);
-        let url = selectedUser && selectedUser.trim() !== ""
-          ? `${config}/saved-analysis?username=${selectedUser}`
-          : `${config}/saved-analysis`;
-
-        const res = await fetch(url, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!res.ok) throw new Error(`Failed with status ${res.status}`);
-        const data = await res.json();
-
-        if (Array.isArray(data)) {
-          const sorted = [...data].sort(
-            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          );
-          setUserAnalyses(sorted);
-        } else {
-          console.error("Unexpected response:", data);
-          setUserAnalyses([]);
+  const fetchAnalyses = async () => {
+    try {
+      setError(null);
+      
+      let url = `${config}/saved-analysis`;
+      if (isManager) {
+        // If manager hasn't selected user, don't fetch
+        if (!selectedUser.trim()) {
+          return;
         }
-      } catch (err) {
-        console.error("❌ Failed to load analyses:", err);
-        setUserAnalyses([]);
-        if (selectedUser || !isManager) {
-          setError("Failed to load analyses");
-        } else {
-          setError(null);
-        }
+        url += `?username=${selectedUser}`;
       }
-    };
 
-    fetchAnalyses();
-  }, [selectedUser]);
+      console.log("🔗 Fetching URL:", url);
 
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error(`Failed with status ${res.status}`);
+      const data = await res.json();
+
+      if (Array.isArray(data)) {
+        const sorted = [...data].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        setUserAnalyses(sorted);
+      } else {
+        console.error("Unexpected response:", data);
+        setUserAnalyses([]);
+      }
+    } catch (err) {
+      console.error("❌ Failed to load analyses:", err);
+      setUserAnalyses([]);
+      setError("Failed to load analyses");
+    }
+  };
+
+  fetchAnalyses();
+}, [selectedUser, isManager]);
+
+  
   useEffect(() => {
     if (typeof window === "undefined") return;
 
