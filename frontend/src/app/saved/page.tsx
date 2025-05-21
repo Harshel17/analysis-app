@@ -10,6 +10,8 @@ import { getUsernameFromToken, isManagerFromToken } from "@/utils/auth";
 import Navbar from "@/app/components/navbar";
 import { useRouter } from "next/navigation";
 import { toLocalDateTime } from "@/utils/date";
+export const dynamic = "force-dynamic";
+
 
 // Type declarations
 
