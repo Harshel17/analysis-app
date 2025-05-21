@@ -1,5 +1,6 @@
 "use client";
 
+export const dynamic = "force-dynamic";
 import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
 import jsPDF from "jspdf";
@@ -10,7 +11,7 @@ import { getUsernameFromToken, isManagerFromToken } from "@/utils/auth";
 import Navbar from "@/app/components/navbar";
 import { useRouter } from "next/navigation";
 import { toLocalDateTime } from "@/utils/date";
-export const dynamic = "force-dynamic";
+
 
 
 // Type declarations
