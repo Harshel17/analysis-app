@@ -127,23 +127,26 @@ export default function SavedAnalysisPage() {
   }, []);
 
   const fetchResults = async () => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    if (!searchId || !token) {
+    if (!searchId) return;
+  
+    if (typeof window === "undefined") return; // ✅ Ensure client
+    const token = localStorage.getItem("token");
+    if (!token) {
       setError("Not authenticated");
       return;
     }
-
+  
     try {
       setError(null);
       setResults([]);
-
+  
       const analysisResponse = await fetch(`${config}/analysis/${searchId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!analysisResponse.ok) throw new Error("Failed to fetch analysis details");
       const analysisData = await analysisResponse.json();
       setAnalysisData(analysisData);
-
+  
       const resultsResponse = await fetch(`${config}/permanent-results/${searchId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -157,6 +160,7 @@ export default function SavedAnalysisPage() {
       setAnalysisData(null);
     }
   };
+  
 
   const exportCSV = () => {
     const csv = Papa.unparse(results);
