@@ -59,78 +59,75 @@ export default function SavedAnalysisPage() {
   const [filterDate, setFilterDate] = useState("");
   const [userList, setUserList] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<string>("");
+  const [token, setToken] = useState<string | null>(null);
+
 
   const [isManager, setIsManager] = useState(false);
 
-useEffect(() => {
-  if (typeof window !== "undefined") {
-    setIsManager(isManagerFromToken());
-  }
-}, []);
-
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedToken = localStorage.getItem("token");
+      if (storedToken) {
+        setToken(storedToken); // ✅ set token for fetches
+        setIsManager(isManagerFromToken());
+        const name = getUsernameFromToken();
+        if (name) setUsername(name);
+      }
+    }
+  }, []);
+  
 
   useEffect(() => {
-  if (typeof window === "undefined") return;
-
-  const token = localStorage.getItem("token");
-  if (!token) return;
-
-  const fetchAnalyses = async () => {
-    try {
-      setError(null);
-      
-      let url = `${config}/saved-analysis`;
-      if (isManager) {
-        // If manager hasn't selected user, don't fetch
-        if (!selectedUser.trim()) {
-          return;
+    if (!token) return;
+  
+    const fetchAnalyses = async () => {
+      try {
+        setError(null);
+  
+        let url = `${config}/saved-analysis`;
+        if (isManager && selectedUser.trim()) {
+          url += `?username=${selectedUser}`;
+        } else if (isManager && !selectedUser.trim()) {
+          return; // ✅ Do not fetch until a user is selected
         }
-        url += `?username=${selectedUser}`;
-      }
-
-      console.log("🔗 Fetching URL:", url);
-
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) throw new Error(`Failed with status ${res.status}`);
-      const data = await res.json();
-
-      if (Array.isArray(data)) {
-        const sorted = [...data].sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-        setUserAnalyses(sorted);
-      } else {
-        console.error("Unexpected response:", data);
+  
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+  
+        if (!res.ok) throw new Error(`Failed with status ${res.status}`);
+        const data = await res.json();
+  
+        if (Array.isArray(data)) {
+          const sorted = [...data].sort(
+            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+          setUserAnalyses(sorted);
+        } else {
+          console.error("Unexpected response:", data);
+          setUserAnalyses([]);
+        }
+      } catch (err) {
+        console.error("❌ Failed to load analyses:", err);
         setUserAnalyses([]);
+        setError("Failed to load analyses");
       }
-    } catch (err) {
-      console.error("❌ Failed to load analyses:", err);
-      setUserAnalyses([]);
-      setError("Failed to load analyses");
-    }
-  };
-
-  fetchAnalyses();
-}, [selectedUser, isManager]);
-
+    };
+  
+    fetchAnalyses();
+  }, [token, selectedUser, isManager]);
+  
   
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const token = localStorage.getItem("token");
     if (!token || !isManager) return;
-
     fetch(`${config}/users`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
       .then((data) => setUserList(data))
       .catch((err) => console.error("Failed to load users", err));
-  }, []);
-
+  }, [token, isManager]);
+  
   const fetchResults = async () => {
     if (!searchId) return;
   
