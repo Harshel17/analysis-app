@@ -39,15 +39,7 @@ export default function Home() {
       </div>
 
       {/* Action Buttons */}
-      <div className={styles.buttonGroup}>
-        <Link href="/create">
-          <button className={`${styles.button} ${styles.startBtn}`}>Start Analysis</button>
-        </Link>
-        <Link href="/saved">
-          <button className={`${styles.button} ${styles.savedBtn}`}>Saved Analysis</button>
-        </Link>
-      </div>
-
+     
       {/* Auth Buttons */}
       <div className={styles.authButtons}>
         <Link href="/auth/login">

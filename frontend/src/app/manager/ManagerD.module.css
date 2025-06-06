@@ -1,0 +1,61 @@
+.iconGrid {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+  
+  .iconCard {
+    width: 200px;
+    height: 180px;
+    border-radius: 16px;
+    background-color: #f3f4f6;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+  }
+  
+  .iconCard:hover {
+    background-color: #e5e7eb;
+    transform: scale(1.05);
+  }
+  
+  .iconCircle {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .iconLabel {
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+  }
+  
+  .pageWrapper {
+    display: flex;
+    min-height: 100vh;
+  }
+  
+  .sidebar {
+    flex-shrink: 0;
+  }
+  
+  .mainContent {
+    flex-grow: 1;
+    padding: 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* 🔥 Center vertically */
+  }
+  
+  .heading {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #111827;
+  }
+  

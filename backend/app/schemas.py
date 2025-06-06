@@ -2,7 +2,6 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
-
 class UserOut(BaseModel):
     id: int
     username: str
@@ -19,6 +18,7 @@ class AnalysisCreate(BaseModel):
     deposit_frequency: Optional[int] = None
     regular_withdrawal: Optional[float] = None
     withdrawal_frequency: Optional[int] = None
+
 class AnalysisResultSchema(BaseModel):
     id: int
     analysis_id: int
@@ -30,8 +30,8 @@ class AnalysisResultSchema(BaseModel):
     withdrawal: float
     tax_deduction: float
     ending_balance: float
-    generated_at: Optional[datetime]  # ✅ FIXED: Make it Optional
-    
+    generated_at: Optional[datetime]
+
 class AnalysisOut(BaseModel):
     id: int
     description: str
@@ -60,9 +60,9 @@ class AnalysisWithUserOut(BaseModel):
     withdrawal_frequency: Optional[int]
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
-    ending_balance: Optional[float]=None 
+    ending_balance: Optional[float] = None 
     user: Optional[UserOut]
-    
+
 class AnalysisUpdate(BaseModel):
     description: Optional[str]
     principal: Optional[float]
@@ -73,11 +73,7 @@ class AnalysisUpdate(BaseModel):
     deposit_frequency: Optional[int]
     regular_withdrawal: Optional[float]
     withdrawal_frequency: Optional[int]
-    
-     
-    
+
     class Config:
         from_attributes = True
-
-
 
