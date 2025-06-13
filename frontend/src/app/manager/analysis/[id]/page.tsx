@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import config from "@/utils/config";
 import Navbar from "@/app/components/navbar";
 import styles from "./AnalysisDetails.module.css";
 import { toLocalDateTime } from "@/utils/date";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface ResultRow {
   week: number;
@@ -32,9 +34,38 @@ interface AnalysisMetadata {
   regular_withdrawal: number;
 }
 
+const COLUMN_LABELS: Record<string, string> = {
+  week: "Week",
+  beginning_balance: "Beginning Balance",
+  additional_deposit: "Additional Deposit",
+  interest: "Interest",
+  profit: "Profit",
+  withdrawal: "Withdrawal",
+  ending_balance: "Ending Balance",
+};
+
 export default function ManagerAnalysisDetails() {
   const { id } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const selectedColsFromQuery = searchParams.get("cols");
+
+  const ALLOWED_RESULT_COLUMNS = [
+    "week",
+    "beginning_balance",
+    "additional_deposit",
+    "interest",
+    "profit",
+    "withdrawal",
+    "ending_balance"
+  ];
+  
+  const selectedCols = selectedColsFromQuery
+  ? selectedColsFromQuery
+      .split(",")
+      .filter((col) => ALLOWED_RESULT_COLUMNS.includes(col) && col.trim() !== "")
+  : ALLOWED_RESULT_COLUMNS;
 
   const [data, setData] = useState<ResultRow[]>([]);
   const [meta, setMeta] = useState<AnalysisMetadata | null>(null);
@@ -55,8 +86,14 @@ export default function ManagerAnalysisDetails() {
   const backLink = fromQuery === "queries" ? "/manager/queries" : "/manager";
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-  const format = (val: number) =>
-    val.toLocaleString("en-US", { style: "currency", currency: "USD" });
+  const format = (val: any) => {
+    if (val === undefined || val === null || isNaN(val)) return "-";
+    return Number(val).toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+    });
+  };
+  
 
   const fetchMetadataAndResults = async () => {
     try {
@@ -83,21 +120,13 @@ export default function ManagerAnalysisDetails() {
   }, [id]);
 
   const handleExport = () => {
-    const csvRows = [
-      ["Week", "Begin", "Deposit", "Interest", "Profit", "Withdrawal", "Ending"],
-      ...data.map((row) => [
-        row.week,
-        format(row.beginning_balance),
-        format(row.additional_deposit),
-        format(row.interest),
-        format(row.profit),
-        format(row.withdrawal),
-        format(row.ending_balance),
-      ]),
-    ];
+    const headers = selectedCols.map((col) => COLUMN_LABELS[col]);
+    const rows = data.map((row) =>
+      selectedCols.map((col) => format(row[col as keyof ResultRow] as number))
+    );
 
-    const csv = csvRows.map((r) => r.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
+    const csvContent = [headers, ...rows].map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement("a");
@@ -106,6 +135,32 @@ export default function ManagerAnalysisDetails() {
     link.click();
     URL.revokeObjectURL(url);
   };
+
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+  
+    const headers = selectedCols.map((col) => COLUMN_LABELS[col]);
+  
+    const rows: string[][] = data.map((row) =>
+      selectedCols.map((col) =>
+        col === "week"
+          ? String(row[col as keyof ResultRow])
+          : format(row[col as keyof ResultRow] as number)
+      )
+    );
+  
+    autoTable(doc, {
+      head: [headers],
+      body: rows,
+      styles: { halign: "right" },
+      headStyles: { fillColor: [0, 102, 204] }, // blue header
+    });
+  
+    doc.save(`analysis_${id}_results.pdf`);
+  };
+  
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (editedMeta) {
@@ -148,8 +203,9 @@ export default function ManagerAnalysisDetails() {
 
   return (
     <div style={{ display: "flex", flexDirection: "row" }}>
-      <Navbar />
-      <div className={styles.inner}>
+  <Navbar />
+  <div className={styles.inner} style={{ marginLeft: "240px", width: "100%" }}>
+
         <button onClick={() => router.push(backLink)} className={styles.backBtn}>
           ← Return to {fromQuery === "queries" ? "Queries" : "Dashboard"}
         </button>
@@ -213,12 +269,15 @@ export default function ManagerAnalysisDetails() {
               </>
             )}
 
-            <div className={styles.breakdownHeader}>
-              <h2 className={styles.subheading}>📉 Weekly Breakdown</h2>
-              <button onClick={handleExport} className={styles.exportBtn}>
-                ⬇ Export CSV
-              </button>
-            </div>
+<div className={styles.breakdownHeader}>
+  <h2 className={styles.subheading}>📉 Weekly Breakdown</h2>
+  <div className={styles.buttonGroup}>
+    <button onClick={handleExport} className={styles.exportBtn}>⬇ Export CSV</button>
+    <button onClick={handleExportPDF} className={styles.exportBtn}>⬇ Export PDF</button>
+  </div>
+</div>
+
+            
 
             {data.length > 0 && data[0].generated_at && (
               <p style={{ fontSize: "0.9rem", marginTop: "-1rem", marginBottom: "1rem", color: "#4B5563" }}>
@@ -230,25 +289,22 @@ export default function ManagerAnalysisDetails() {
               <table className={styles.breakdownTable}>
                 <thead>
                   <tr>
-                    <th>Week</th>
-                    <th>Beginning Balance</th>
-                    <th>Additional Deposit</th>
-                    <th>Interest</th>
-                    <th>Profit</th>
-                    <th>Withdrawal</th>
-                    <th>Ending Balance</th>
+                    {selectedCols.map((col) => (
+                      <th key={col}>{COLUMN_LABELS[col]}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {data.map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? styles.rowEven : styles.rowOdd}>
-                      <td>{row.week}</td>
-                      <td className={styles.green}>{format(row.beginning_balance)}</td>
-                      <td className={styles.blue}>{format(row.additional_deposit)}</td>
-                      <td className={styles.emerald}>{format(row.interest)}</td>
-                      <td className={styles.emerald}>{format(row.profit)}</td>
-                      <td className={styles.red}>{format(row.withdrawal)}</td>
-                      <td className={styles.purple}>{format(row.ending_balance)}</td>
+                      {selectedCols.map((col) => (
+  <td key={col} className={styles[col] || ""}>
+    {col === "week"
+      ? row[col as keyof ResultRow] // Show plain number
+      : format(row[col as keyof ResultRow] as number)}
+  </td>
+))}
+
                     </tr>
                   ))}
                 </tbody>

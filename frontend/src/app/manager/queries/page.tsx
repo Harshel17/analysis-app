@@ -19,56 +19,84 @@ const COLUMNS = [
   { key: "generated_at", label: "Generated At" },
 ];
 
+const WEEKLY_RESULT_COLUMNS = [
+  { key: "week", label: "Week" },
+  { key: "beginning_balance", label: "Beginning Balance" },
+  { key: "additional_deposit", label: "Additional Deposit" },
+  { key: "interest", label: "Interest" },
+  { key: "profit", label: "Profit" },
+  { key: "withdrawal", label: "Withdrawal" },
+  { key: "ending_balance", label: "Ending Balance" },
+];
+
+const fieldOptions = ["username", "description", "principal", "ending_balance", "created_at"];
+const operatorOptions: Record<string, string[]> = {
+  username: ["Equals", "Contains"],
+  description: ["Contains"],
+  principal: ["=", ">", "<", ">=", "<="],
+  ending_balance: ["=", ">", "<", ">=", "<="],
+  created_at: ["Between"],
+};
+
+type FilterRow = {
+  field: string;
+  operator: string;
+  value: string;
+};
+
 export default function QueriesPage() {
   const router = useRouter();
-  const [filters, setFilters] = useState({
-    username: "",
-    description_contains: "",
-    principal_gt: "",
-    principal_lt: "",
-    ending_balance_gt: "",
-    ending_balance_lt: "",
-    start_date: "",
-    end_date: "",
-  });
 
+  const [filters, setFilters] = useState<FilterRow[]>([{ field: "username", operator: "Equals", value: "" }]);
   const [results, setResults] = useState([]);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(COLUMNS.map(c => c.key));
+  const [queryName, setQueryName] = useState("");
   const [savedQueries, setSavedQueries] = useState<any[]>([]);
   const [activeSavedIndex, setActiveSavedIndex] = useState<number | null>(null);
-  const [queryName, setQueryName] = useState("");
+
+  const [selectedMainCols, setSelectedMainCols] = useState(COLUMNS.map(c => c.key));
+  const [selectedWeeklyCols, setSelectedWeeklyCols] = useState(WEEKLY_RESULT_COLUMNS.map(c => c.key));
 
   useEffect(() => {
     const saved = localStorage.getItem("savedQueries");
     if (saved) setSavedQueries(JSON.parse(saved));
   }, []);
 
-  const handleChange = (e: any) => {
-    setFilters({ ...filters, [e.target.name]: e.target.value });
+  const handleFieldChange = (index: number, field: string) => {
+    const updated = [...filters];
+    updated[index].field = field;
+    updated[index].operator = operatorOptions[field][0];
+    updated[index].value = "";
+    setFilters(updated);
   };
 
-  const toggleColumn = (key: string) => {
-    setSelectedColumns((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
-    );
+  const handleOperatorChange = (index: number, operator: string) => {
+    const updated = [...filters];
+    updated[index].operator = operator;
+    setFilters(updated);
   };
 
-  const resetFilters = () => {
-    setFilters({
-      username: "",
-      description_contains: "",
-      principal_gt: "",
-      principal_lt: "",
-      ending_balance_gt: "",
-      ending_balance_lt: "",
-      start_date: "",
-      end_date: "",
-    });
-    setResults([]);
-    setError("");
+  const handleValueChange = (index: number, value: string) => {
+    const updated = [...filters];
+    updated[index].value = value;
+    setFilters(updated);
+  };
+
+  const toggleColumn = (key: string, type: "main" | "weekly") => {
+    if (type === "main") {
+      setSelectedMainCols(prev => (prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]));
+    } else {
+      setSelectedWeeklyCols(prev => (prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]));
+    }
+  };
+
+  const addFilter = () => setFilters([...filters, { field: "username", operator: "Equals", value: "" }]);
+
+  const removeFilter = (index: number) => {
+    const updated = filters.filter((_, i) => i !== index);
+    setFilters(updated);
   };
 
   const runQuery = async () => {
@@ -76,10 +104,24 @@ export default function QueriesPage() {
       const token = localStorage.getItem("token");
       const params = new URLSearchParams();
 
-      (Object.keys(filters) as (keyof typeof filters)[]).forEach((key) => {
-        if (filters[key]) {
-          params.append(key, filters[key]);
+      filters.forEach(({ field, operator, value }) => {
+        if (!value) return;
+
+        if (field === "created_at" && operator === "Between") {
+          const [start, end] = value.split(",");
+          if (start) params.append("start_date", start);
+          if (end) params.append("end_date", end);
+          return;
         }
+
+        let key = field;
+        if (["Contains", "Equals"].includes(operator)) {
+          if (operator === "Contains") key += "_contains";
+        } else {
+          key += `_${operator}`;
+        }
+
+        params.append(key, value);
       });
 
       const res = await axios.get(`${config}/queries/analyses?${params}`, {
@@ -90,42 +132,41 @@ export default function QueriesPage() {
       setPage(1);
       setError("");
     } catch (err) {
-      console.error("Query failed", err);
-      setError("⚠️ Failed to run query.");
+      console.error(err);
+      setError("⚠️ Failed to fetch query results.");
     }
   };
 
+  const resetFilters = () => {
+    setFilters([{ field: "username", operator: "Equals", value: "" }]);
+    setResults([]);
+    setError("");
+  };
+
   const saveCurrentQuery = () => {
-    const updated = [...savedQueries, { ...filters, name: queryName || `Query ${savedQueries.length + 1}` }];
+    const updated = [...savedQueries, { filters, name: queryName || `Query ${savedQueries.length + 1}` }];
     setSavedQueries(updated);
     localStorage.setItem("savedQueries", JSON.stringify(updated));
-    alert("✅ Query saved successfully!");
+    alert("✅ Query saved!");
     setQueryName("");
   };
 
   const loadSavedQuery = (index: number) => {
     const q = savedQueries[index];
-    const { name, ...pureFilters } = q;
-    setFilters(pureFilters);
+    setFilters(q.filters);
     setActiveSavedIndex(index);
   };
 
-  const formatCurrency = (val: number) =>
-    val?.toLocaleString("en-US", {
-      style: "currency",
-      currency: "USD",
-    });
-
   const exportCSV = () => {
-    const headers = COLUMNS.filter(c => selectedColumns.includes(c.key)).map(c => c.label);
+    const headers = COLUMNS.filter(c => selectedMainCols.includes(c.key)).map(c => c.label);
     const rows = results.map((r: any) =>
-      COLUMNS.filter(c => selectedColumns.includes(c.key)).map(c => {
+      COLUMNS.filter(c => selectedMainCols.includes(c.key)).map(c => {
         const val = c.key === "generated_at" ? toLocalDateTime(r[c.key]) : r[c.key];
-        return typeof val === "number" ? formatCurrency(val) : val;
+        return typeof val === "number" ? `$${val.toLocaleString()}` : val;
       })
     );
-    const csvContent = [headers, ...rows].map((e) => e.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv" });
+    const csv = [headers, ...rows].map(row => row.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -136,11 +177,11 @@ export default function QueriesPage() {
 
   const exportPDF = () => {
     const doc = new jsPDF();
-    const headers = COLUMNS.filter(c => selectedColumns.includes(c.key)).map(c => c.label);
+    const headers = COLUMNS.filter(c => selectedMainCols.includes(c.key)).map(c => c.label);
     const rows = results.map((r: any) =>
-      COLUMNS.filter(c => selectedColumns.includes(c.key)).map(c => {
+      COLUMNS.filter(c => selectedMainCols.includes(c.key)).map(c => {
         const val = c.key === "generated_at" ? toLocalDateTime(r[c.key]) : r[c.key];
-        return typeof val === "number" ? `$${r[c.key].toLocaleString()}` : val;
+        return typeof val === "number" ? `$${val.toLocaleString()}` : val;
       })
     );
     autoTable(doc, { head: [headers], body: rows });
@@ -149,25 +190,65 @@ export default function QueriesPage() {
 
   const paginatedResults = results.slice((page - 1) * pageSize, page * pageSize);
 
+  const handleView = (id: number) => {
+    const cols = selectedWeeklyCols.join(",");
+    router.push(`/manager/analysis/${id}?from=queries&cols=${cols}`);
+  };
+
+  const formatCurrency = (val: number) =>
+    val?.toLocaleString("en-US", { style: "currency", currency: "USD" });
+
   return (
-    <div className={styles.container}>
-      <Navbar />
-      <div className={styles.inner}>
+    <div style={{ display: "flex", flexDirection: "row" }}>
+  <Navbar />
+  <div className={styles.inner}>
         <h1 className={styles.heading}>🔍 Query Analyses</h1>
 
-        <div className={styles.filters}>
-          <input type="text" name="username" value={filters.username} onChange={handleChange} placeholder="Username" />
-          <input type="text" name="description_contains" value={filters.description_contains} onChange={handleChange} placeholder="Description Contains" />
-          <input type="number" name="principal_gt" value={filters.principal_gt} onChange={handleChange} placeholder="Principal >" />
-          <input type="number" name="principal_lt" value={filters.principal_lt} onChange={handleChange} placeholder="Principal <" />
-          <input type="number" name="ending_balance_gt" value={filters.ending_balance_gt} onChange={handleChange} placeholder="Balance >" />
-          <input type="number" name="ending_balance_lt" value={filters.ending_balance_lt} onChange={handleChange} placeholder="Balance <" />
-          <input type="date" name="start_date" value={filters.start_date} onChange={handleChange} />
-          <input type="date" name="end_date" value={filters.end_date} onChange={handleChange} />
-          <input type="text" value={queryName} onChange={(e) => setQueryName(e.target.value)} placeholder="Query Name" />
+        <div className={styles.criteriaBox}>
+          <h2>Search Criteria</h2>
+          {filters.map((filter, index) => (
+            <div key={index} className={styles.filterRow}>
+              <select value={filter.field} onChange={e => handleFieldChange(index, e.target.value)}>
+                {fieldOptions.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+
+              <select value={filter.operator} onChange={e => handleOperatorChange(index, e.target.value)}>
+                {operatorOptions[filter.field].map(op => (
+                  <option key={op} value={op}>{op}</option>
+                ))}
+              </select>
+
+              {filter.field === "created_at" && filter.operator === "Between" ? (
+                <>
+                  <input
+                    type="date"
+                    onChange={e => handleValueChange(index, `${e.target.value},${filter.value.split(",")[1] || ""}`)}
+                  />
+                  <input
+                    type="date"
+                    onChange={e => handleValueChange(index, `${filter.value.split(",")[0] || ""},${e.target.value}`)}
+                  />
+                </>
+              ) : (
+                <input
+                  type={["principal", "ending_balance"].includes(filter.field) ? "number" : "text"}
+                  value={filter.value}
+                  onChange={e => handleValueChange(index, e.target.value)}
+                />
+              )}
+              <button onClick={() => removeFilter(index)}>❌</button>
+            </div>
+          ))}
+          <button onClick={addFilter}>+ Add Filter</button>
+        </div>
+
+        <div className={styles.actionRow}>
+          <input type="text" value={queryName} onChange={e => setQueryName(e.target.value)} placeholder="Query Name" />
           <button onClick={runQuery}>Run Query</button>
-          <button onClick={resetFilters} className={styles.resetBtn}>Reset Filters</button>
-          <button onClick={saveCurrentQuery}>💾 Save Query</button>
+          <button onClick={resetFilters}>Reset</button>
+          <button onClick={saveCurrentQuery}>💾 Save</button>
           {results.length > 0 && (
             <>
               <button onClick={exportCSV}>⬇ Export CSV</button>
@@ -177,28 +258,56 @@ export default function QueriesPage() {
         </div>
 
         {savedQueries.length > 0 && (
-          <div style={{ marginBottom: "1rem" }}>
-            <label>Saved Queries: </label>
-            <select onChange={(e) => loadSavedQuery(Number(e.target.value))} value={activeSavedIndex ?? ""}>
-              <option value="" disabled>Select saved query</option>
-              {savedQueries.map((q, i) => (
-                <option key={i} value={i}>
-                  {q.name || `Query ${i + 1}`}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+  <div style={{ margin: "1.5rem 0" }}>
+    <label><strong>🔖 Load Saved Query: </strong></label>
+    <select
+      value={activeSavedIndex ?? ""}
+      onChange={(e) => loadSavedQuery(Number(e.target.value))}
+      style={{ marginLeft: "10px", padding: "5px" }}
+    >
+      <option value="" disabled>Select a saved query</option>
+      {savedQueries.map((q, i) => (
+        <option key={i} value={i}>
+          {q.name || `Query ${i + 1}`}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
 
-        {COLUMNS.map((col) => (
-          <label key={col.key} style={{ marginRight: "10px" }}>
-            <input
-              type="checkbox"
-              checked={selectedColumns.includes(col.key)}
-              onChange={() => toggleColumn(col.key)}
-            /> {col.label}
-          </label>
-        ))}
+
+<section className={styles.boxSection}>
+  <h3>Select Main Table Columns</h3>
+  <div className={styles.checkboxGroup}>
+    {COLUMNS.map((col) => (
+      <label key={col.key}>
+        <input
+          type="checkbox"
+          checked={selectedMainCols.includes(col.key)}
+          onChange={() => toggleColumn(col.key, "main")}
+        />
+        {col.label}
+      </label>
+    ))}
+  </div>
+</section>
+
+<section className={styles.boxSection}>
+  <h3>Select Weekly Breakdown Columns</h3>
+  <div className={styles.checkboxGroup}>
+    {WEEKLY_RESULT_COLUMNS.map((col) => (
+      <label key={col.key}>
+        <input
+          type="checkbox"
+          checked={selectedWeeklyCols.includes(col.key)}
+          onChange={() => toggleColumn(col.key, "weekly")}
+        />
+        {col.label}
+      </label>
+    ))}
+  </div>
+</section>
+
 
         {error && <p className={styles.error}>{error}</p>}
 
@@ -207,7 +316,7 @@ export default function QueriesPage() {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  {COLUMNS.filter(c => selectedColumns.includes(c.key)).map((col) => (
+                  {COLUMNS.filter(c => selectedMainCols.includes(c.key)).map(col => (
                     <th key={col.key}>{col.label}</th>
                   ))}
                   <th>View</th>
@@ -216,26 +325,27 @@ export default function QueriesPage() {
               <tbody>
                 {paginatedResults.map((r: any, idx: number) => (
                   <tr key={idx}>
-                    {COLUMNS.filter(c => selectedColumns.includes(c.key)).map((col) => (
+                    {COLUMNS.filter(c => selectedMainCols.includes(c.key)).map(col => (
                       <td key={col.key}>
-                        {col.key === "principal" || col.key === "ending_balance"
+                        {col.key === "generated_at"
+                          ? toLocalDateTime(r[col.key])
+                          : typeof r[col.key] === "number"
                           ? formatCurrency(r[col.key])
-                          : col.key === "generated_at"
-                          ? r[col.key] ? toLocalDateTime(r[col.key]) : "-"
                           : r[col.key]}
                       </td>
                     ))}
                     <td>
-                      <button onClick={() => router.push(`/manager/analysis/${r.id}?from=queries`)}>View</button>
+                      <button onClick={() => handleView(r.id)}>View</button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+
             <div className={styles.pagination}>
-              <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Previous</button>
+              <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>Previous</button>
               <span>Page {page}</span>
-              <button disabled={page * pageSize >= results.length} onClick={() => setPage((p) => p + 1)}>Next</button>
+              <button disabled={page * pageSize >= results.length} onClick={() => setPage(p => p + 1)}>Next</button>
             </div>
           </>
         ) : (
