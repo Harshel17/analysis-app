@@ -145,47 +145,73 @@ export default function ReportsPage() {
 
   const exportSinglePDF = (report: ReportData) => {
     const doc = new jsPDF();
-    let y = 20;
-
-    doc.setFontSize(16);
-    doc.text("Financial Report", 14, y); y += 10;
-
-    doc.setFontSize(12);
-    doc.setFillColor(235, 243, 255);
-    doc.rect(12, y, 185, 90, 'F');
-
-    const col1x = 16;
-    const col2x = 105;
-    let lineY = y + 8;
-
-    const left = [
+    const margin = 14;
+    let y = margin;
+  
+    doc.setFontSize(18);
+    doc.text("Financial Report", margin, y);
+    y += 10;
+  
+    // Box styling
+    const boxHeight = 65;
+    doc.setFillColor(240, 240, 240);
+    doc.roundedRect(margin, y, 182, boxHeight, 4, 4, 'F');
+  
+    const labelFontSize = 11;
+    const rowGap = 6;
+    const labelX = margin + 6;
+    const valueX = labelX + 55;
+    const rightLabelX = margin + 100;
+    const rightValueX = rightLabelX + 55;
+    let rowY = y + 10;
+  
+    const safeValue = (val: any, prefix = "", suffix = "") => {
+      if (val === null || val === undefined || val === "null" || val === "undefined" || val === "") return "N/A";
+      if (typeof val === "number" && isNaN(val)) return "N/A";
+      if (typeof val === "number") return `${prefix}${val.toLocaleString()}${suffix}`;
+      return val;
+    };
+  
+    const leftParams = [
       ["Analysis ID", report.id.toString()],
-      ["Principal", `$${report.principal.toLocaleString()}`],
-      ["Projection Period", `${report.projection_period ?? "-"} weeks`],
-      ["Deposit Frequency", report.deposit_frequency ?? "-"],
-      ["Regular Withdrawal", `$${report.regular_withdrawal?.toLocaleString() ?? "-"}`],
-      ["Ending Balance", `$${report.ending_balance?.toLocaleString() ?? "-"}`],
+      ["Principal", safeValue(report.principal, "$")],
+      ["Projection Period", safeValue(report.projection_period, "", " weeks")],
+      ["Deposit Frequency", safeValue(report.deposit_frequency)],
+      ["Regular Withdrawal", safeValue(report.regular_withdrawal, "$")],
+      ["Ending Balance", safeValue(report.ending_balance, "$")],
     ];
-
-    const right = [
-      ["Description", report.description],
-      ["Interest (weekly)", `${report.interest_week ?? "-"}%`],
-      ["Tax Rate", `${report.tax_rate ?? "-"}%`],
-      ["Additional Deposit", `$${report.additional_deposit?.toLocaleString() ?? "-"}`],
-      ["Withdrawal Frequency", report.withdrawal_frequency ?? "-"],
-      ["Created At", toLocalDateTime(report.created_at)],
+  
+    const rightParams = [
+      ["Description", safeValue(report.description)],
+      ["Interest (weekly)", safeValue(report.interest_week, "", "%")],
+      ["Tax Rate", safeValue(report.tax_rate, "", "%")],
+      ["Additional Deposit", safeValue(report.additional_deposit, "$")],
+      ["Withdrawal Frequency", safeValue(report.withdrawal_frequency)],
+      ["Created At", safeValue(toLocalDateTime(report.created_at))],
     ];
-
-    for (let i = 0; i < left.length; i++) {
-      doc.text(`${left[i][0]}:`, col1x, lineY);
-      doc.text(left[i][1], col1x + 50, lineY);
-      doc.text(`${right[i][0]}:`, col2x, lineY);
-      doc.text(right[i][1], col2x + 50, lineY);
-      lineY += 8;
+  
+    doc.setFontSize(labelFontSize);
+    for (let i = 0; i < leftParams.length; i++) {
+      doc.setFont(undefined, "bold");
+      doc.text(leftParams[i][0] + ":", labelX, rowY);
+      doc.setFont(undefined, "normal");
+      doc.text(leftParams[i][1], valueX, rowY);
+  
+      doc.setFont(undefined, "bold");
+      doc.text(rightParams[i][0] + ":", rightLabelX, rowY);
+      doc.setFont(undefined, "normal");
+      doc.text(rightParams[i][1], rightValueX, rowY);
+  
+      rowY += rowGap;
     }
-
-    lineY += 5;
-
+  
+    // Weekly Breakdown Header
+    y += boxHeight + 12;
+    doc.setFontSize(14);
+    doc.setFont(undefined, "bold");
+    doc.text("Weekly Breakdown", margin, y);
+    y += 6;
+  
     const bodyRows = report.weekly_breakdown.map((w) => [
       w.week,
       `$${w.beginning_balance.toFixed(2)}`,
@@ -195,16 +221,20 @@ export default function ReportsPage() {
       `$${w.tax_deduction.toFixed(2)}`,
       `$${w.ending_balance.toFixed(2)}`,
     ]);
-
+  
     autoTable(doc, {
-      startY: lineY,
+      startY: y,
       head: [["Week", "Beginning", "Deposit", "Profit", "Withdrawal", "Tax", "Ending"]],
       body: bodyRows,
-      styles: { fontSize: 9 },
+      styles: { fontSize: 9, halign: "right" },
+      headStyles: { fillColor: [0, 102, 204] },
+      margin: { left: margin, right: margin },
     });
-
+  
     doc.save(`report_${report.id}.pdf`);
   };
+  
+  
 
   const toggleExpand = (id: number) => {
     setExpandedReports((prev) =>

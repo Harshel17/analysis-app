@@ -323,23 +323,25 @@ export default function QueriesPage() {
                 </tr>
               </thead>
               <tbody>
-                {paginatedResults.map((r: any, idx: number) => (
-                  <tr key={idx}>
-                    {COLUMNS.filter(c => selectedMainCols.includes(c.key)).map(col => (
-                      <td key={col.key}>
-                        {col.key === "generated_at"
-                          ? toLocalDateTime(r[col.key])
-                          : typeof r[col.key] === "number"
-                          ? formatCurrency(r[col.key])
-                          : r[col.key]}
-                      </td>
-                    ))}
-                    <td>
-                      <button onClick={() => handleView(r.id)}>View</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+  {paginatedResults.map((r: any, idx: number) => (
+    <tr key={idx}>
+      {COLUMNS.filter(c => selectedMainCols.includes(c.key)).map(col => (
+        <td key={col.key}>
+          {col.key === "generated_at"
+            ? toLocalDateTime(r[col.key])
+            : ["principal", "ending_balance"].includes(col.key)
+            ? formatCurrency(r[col.key])
+            : r[col.key]}
+        </td>
+      ))}
+      <td>
+        <button onClick={() => handleView(r.id)}>View</button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+
+
             </table>
 
             <div className={styles.pagination}>

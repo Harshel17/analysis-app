@@ -120,30 +120,143 @@ export default function ManagerAnalysisDetails() {
   }, [id]);
 
   const handleExport = () => {
-    const headers = selectedCols.map((col) => COLUMN_LABELS[col]);
-    const rows = data.map((row) =>
-      selectedCols.map((col) => format(row[col as keyof ResultRow] as number))
+    if (!meta) return;
+  
+    const paramRows = [
+      ["Analysis Report", ""],
+      ["", ""],
+      ["Field", "Value"],
+      ["Analysis ID", `${meta.id}`],
+      ["Description", `${meta.description}`],
+      ["Principal", Number(meta.principal).toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+      })],
+      ["Interest (weekly)", `${meta.interest_week}%`],
+      ["Projection Period", `${meta.projection_period} weeks`],
+      ["Tax Rate", `${meta.tax_rate}%`],
+      ["Deposit Frequency", `Every ${meta.deposit_frequency} weeks`],
+      ["Withdrawal Frequency", `Every ${meta.withdrawal_frequency} weeks`],
+      ["Additional Deposit", Number(meta.additional_deposit).toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+      })],
+      ["Regular Withdrawal", Number(meta.regular_withdrawal).toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+      })],
+      ["", ""]
+    ];
+    
+  
+    const tableHeaders = selectedCols.map(col => `"${COLUMN_LABELS[col]}"`);
+  
+    const tableRows = data.map(row =>
+      selectedCols.map(col => {
+        const val = row[col as keyof ResultRow];
+        if (typeof val === "number") {
+          return col === "week"
+            ? `"${val}"`
+            : `"${Number(val).toLocaleString("en-US", {
+                style: "currency",
+                currency: "USD",
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}"`;
+        }
+        return `"${val}"`;
+      })
     );
-
-    const csvContent = [headers, ...rows].map((r) => r.join(",")).join("\n");
+  
+    const paramCSV = paramRows.map(r => r.map(val => `"${val}"`).join(",")).join("\n");
+    const tableCSV = [tableHeaders, ...tableRows].map(r => r.join(",")).join("\n");
+  
+    const csvContent = `${paramCSV}\n${tableCSV}`;
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement("a");
     link.href = url;
     link.download = `analysis_${id}_results.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
+  
+  
+  
 
 
   const handleExportPDF = () => {
+    if (!meta) return;
+  
     const doc = new jsPDF();
+    const margin = 14;
+    let y = margin;
   
-    const headers = selectedCols.map((col) => COLUMN_LABELS[col]);
+    // Title
+    doc.setFontSize(18);
+    doc.text("Analysis Report", margin, y);
+    y += 10;
   
-    const rows: string[][] = data.map((row) =>
-      selectedCols.map((col) =>
+    // Parameter Box
+    const boxHeight = 65;
+    doc.setFillColor(245, 245, 245);
+    doc.roundedRect(margin, y, 182, boxHeight, 4, 4, 'F');
+  
+    const leftParams = [
+      ["Analysis ID", `${meta.id}`],
+      ["Principal", `$${Number(meta.principal).toLocaleString()}`],
+      ["Interest (weekly)", `${meta.interest_week}%`],
+      ["Projection Period", `${meta.projection_period} weeks`],
+      ["Tax Rate", `${meta.tax_rate}%`],
+    ];
+  
+    const rightParams = [
+      ["Description", meta.description],
+      ["Deposit Frequency", `Every ${meta.deposit_frequency} weeks`],
+      ["Withdrawal Frequency", `Every ${meta.withdrawal_frequency} weeks`],
+      ["Additional Deposit", `$${Number(meta.additional_deposit).toLocaleString()}`],
+      ["Regular Withdrawal", `$${Number(meta.regular_withdrawal).toLocaleString()}`],
+    ];
+  
+    const rowGap = 6;
+    const fontSize = 11;
+    const leftLabelX = margin + 6;
+    const leftValueX = leftLabelX + 52;
+    const rightLabelX = margin + 98;
+    const rightValueX = rightLabelX + 52;
+    let rowY = y + 12;
+  
+    doc.setFontSize(fontSize);
+    for (let i = 0; i < leftParams.length; i++) {
+      // Left side
+      doc.setFont("helvetica", "bold");
+      doc.text(leftParams[i][0] + ":", leftLabelX, rowY);
+      doc.setFont("helvetica", "normal");
+      doc.text(leftParams[i][1], leftValueX, rowY, { maxWidth: 40 });
+  
+      // Right side
+      doc.setFont("helvetica", "bold");
+      doc.text(rightParams[i][0] + ":", rightLabelX, rowY);
+      doc.setFont("helvetica", "normal");
+      doc.text(rightParams[i][1], rightValueX, rowY, { maxWidth: 40 });
+  
+      rowY += rowGap;
+    }
+  
+    // Section title
+    y += boxHeight + 12;
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Weekly Breakdown", margin, y);
+    y += 6;
+  
+    // Table content
+    const headers = selectedCols.map(col => COLUMN_LABELS[col]);
+    const rows: string[][] = data.map(row =>
+      selectedCols.map(col =>
         col === "week"
           ? String(row[col as keyof ResultRow])
           : format(row[col as keyof ResultRow] as number)
@@ -151,14 +264,18 @@ export default function ManagerAnalysisDetails() {
     );
   
     autoTable(doc, {
+      startY: y,
       head: [headers],
       body: rows,
       styles: { halign: "right" },
-      headStyles: { fillColor: [0, 102, 204] }, // blue header
+      headStyles: { fillColor: [0, 102, 204] },
+      margin: { left: margin, right: margin },
     });
   
     doc.save(`analysis_${id}_results.pdf`);
   };
+  
+  
   
 
 
