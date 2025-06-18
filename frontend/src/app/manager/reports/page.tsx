@@ -112,13 +112,14 @@ export default function ReportsPage() {
       "Tax Rate", `${report.tax_rate ?? "-"}%`
     ]);
     rows.push([
-      "Deposit Frequency", report.deposit_frequency ?? "-",
+      "Deposit Frequency", report.deposit_frequency?.toString() ?? "-",
       "Additional Deposit", `$${report.additional_deposit?.toLocaleString() ?? "-"}`
     ]);
     rows.push([
       "Regular Withdrawal", `$${report.regular_withdrawal?.toLocaleString() ?? "-"}`,
-      "Withdrawal Frequency", report.withdrawal_frequency ?? "-"
+      "Withdrawal Frequency", report.withdrawal_frequency?.toString() ?? "-"
     ]);
+    
     rows.push([
       "Ending Balance", `$${report.ending_balance?.toLocaleString() ?? "-"}`,
       "Created At", toLocalDateTime(report.created_at)
@@ -199,14 +200,14 @@ export default function ReportsPage() {
   
     doc.setFontSize(labelFontSize);
     for (let i = 0; i < leftParams.length; i++) {
-      doc.setFont(undefined, "bold");
+      doc.setFont("helvetica", "bold");
       doc.text(leftParams[i][0] + ":", labelX, rowY);
-      doc.setFont(undefined, "normal");
+      doc.setFont("helvetica", "normal");
       doc.text(leftParams[i][1], valueX, rowY);
   
-      doc.setFont(undefined, "bold");
+      doc.setFont("helvetica", "bold");
       doc.text(rightParams[i][0] + ":", rightLabelX, rowY);
-      doc.setFont(undefined, "normal");
+      doc.setFont("helvetica", "normal");
       doc.text(rightParams[i][1], rightValueX, rowY);
   
       rowY += rowGap;
@@ -215,7 +216,7 @@ export default function ReportsPage() {
     // Weekly Breakdown Header
     y += boxHeight + 12;
     doc.setFontSize(14);
-    doc.setFont(undefined, "bold");
+    doc.setFont("helvetica", "bold");
     doc.text("Weekly Breakdown", margin, y);
     y += 6;
   
