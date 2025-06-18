@@ -47,16 +47,26 @@ def generate_financial_report(
 
     output = StringIO()
     writer = csv.writer(output)
-    writer.writerow(["ID", "Username", "Principal", "Ending Balance", "Generated At"])
+    writer.writerow([
+        "ID", "Username", "Principal", "Interest / Week", "Deposit Freq",
+        "Withdrawal Freq", "Description", "Created At", "Ending Balance", "Generated At"
+    ])
 
     for r in results:
+        param = r.analysis
         writer.writerow([
-            r.id,
-            r.analysis.user.username if r.analysis and r.analysis.user else "-",
-            f"{r.analysis.principal:,.2f}" if r.analysis else "-",
-            f"{r.ending_balance or 0:,.2f}",
-            r.generated_at.strftime("%Y-%m-%d %H:%M:%S") if r.generated_at else "-"
-        ])
+    r.id,
+    param.user.username if param and param.user else "-",
+    f"{param.principal:,.2f}" if param else "-",
+    f"{param.interest_week}%" if param else "-",
+    param.deposit_frequency if param else "-",
+    param.withdrawal_frequency if param else "-",
+    param.description if param else "-",
+    param.created_at.strftime("%Y-%m-%d %H:%M:%S") if param and param.created_at else "-",
+    f"{r.ending_balance or 0:,.2f}",
+    r.generated_at.strftime("%Y-%m-%d %H:%M:%S") if r.generated_at else "-"
+])
+
 
     output.seek(0)
     return StreamingResponse(
@@ -66,26 +76,71 @@ def generate_financial_report(
     )
 
 # ✅ 2. Fetch Reports (Table view)
-@router.get("/reports", response_model=List[AnalysisResultSchema])
+@router.get("/manager/reports")
 def get_reports(
     username: Optional[str] = Query(None),
+    analysis_id: Optional[int] = Query(None),
     start_date: Optional[datetime] = Query(None),
     end_date: Optional[datetime] = Query(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_manager)
 ):
     try:
-        query = db.query(AnalysisResult).join(AnalysisResult.analysis).join(AnalysisParameter.user)
+        query = db.query(AnalysisParameter, AnalysisResult) \
+            .outerjoin(AnalysisResult, AnalysisResult.analysis_id == AnalysisParameter.id) \
+            .join(AnalysisParameter.user)
 
         if username:
             query = query.filter(User.username.ilike(f"%{username}%"))
         if start_date:
-            query = query.filter(AnalysisResult.generated_at >= start_date)
+            query = query.filter(AnalysisParameter.created_at >= start_date)
         if end_date:
-            query = query.filter(AnalysisResult.generated_at <= end_date)
+            query = query.filter(AnalysisParameter.created_at <= end_date)
+        if analysis_id:
+            query = query.filter(AnalysisParameter.id == analysis_id)
 
-        return query.all()
+        parameters = query.all()
+
+        response = []
+
+        for param, result in parameters:
+            report = {
+                "id": param.id,
+                "username": param.user.username,
+                "description": param.description,
+                "principal": param.principal,
+                "interest_week": param.interest_week,
+                "tax_rate": param.tax_rate,
+                "projection_period": param.projection_period,
+                "deposit_frequency": param.deposit_frequency,
+                "additional_deposit": param.additional_deposit,
+                "withdrawal_frequency": param.withdrawal_frequency,
+                "regular_withdrawal": param.regular_withdrawal,
+                "ending_balance": result.ending_balance if result else None,
+                "generated_at": result.generated_at if result else None,
+                "created_at": param.created_at,
+                "weekly_breakdown": [
+                    {
+                        "week": r.week,
+                        "beginning_balance": r.beginning_balance,
+                        "additional_deposit": r.additional_deposit,
+                        "profit": r.profit,
+                        "withdrawal": r.withdrawal,
+                        "tax_deduction": r.tax_deduction,
+                        "ending_balance": r.ending_balance,
+                        "generated_at": r.generated_at,
+                    }
+                    for r in param.staging_results
+                ]
+            }
+
+            response.append(report)
+
+        print("🔍 Sample report:", response[0] if response else "No data")
+
+        return response
 
     except Exception as e:
-        print("❌ Error fetching reports:", str(e))
-        raise HTTPException(status_code=500, detail="Failed to fetch reports.")
+        print("❌ Internal Server Error:", str(e))
+        raise HTTPException(status_code=500, detail="Failed to fetch report data.")
+

@@ -85,3 +85,9 @@ class PermanentResult(Base):
     tax_deduction = Column(Float)
     ending_balance = Column(Float)
     generated_at = Column(DateTime(timezone=True), server_default=func.now())
+
+# In AnalysisParameter model (already exists)
+results = relationship("AnalysisResult", back_populates="analysis", cascade="all, delete-orphan")
+
+# In AnalysisResult model
+analysis = relationship("AnalysisParameter", back_populates="results")

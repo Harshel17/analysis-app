@@ -32,14 +32,15 @@ interface ReportData {
   interest_week?: number;
   tax_rate?: number;
   projection_period?: number;
-  deposit_frequency?: string;
+  deposit_frequency?: number;         // ✅ Fix this
   additional_deposit?: number;
-  withdrawal_frequency?: string;
+  withdrawal_frequency?: number;      // ✅ Fix this
   regular_withdrawal?: number;
   ending_balance?: number;
   created_at: string;
   weekly_breakdown: BreakdownData[];
 }
+
 
 export default function ReportsPage() {
   const [username, setUsername] = useState("");
@@ -62,8 +63,11 @@ export default function ReportsPage() {
     const token = localStorage.getItem("token");
     if (!token || !isManagerFromToken()) {
       setError("❌ You are not authorized to view this page.");
+    } else {
+      fetchReports();  // <<< This will always load latest reports
     }
-  }, []);
+}, []);
+
 
   const fetchReports = async () => {
     const token = localStorage.getItem("token");
@@ -166,17 +170,20 @@ export default function ReportsPage() {
     let rowY = y + 10;
   
     const safeValue = (val: any, prefix = "", suffix = "") => {
-      if (val === null || val === undefined || val === "null" || val === "undefined" || val === "") return "N/A";
+      if (val === null || val === undefined || val === "null" || val === "undefined") return "N/A";
       if (typeof val === "number" && isNaN(val)) return "N/A";
       if (typeof val === "number") return `${prefix}${val.toLocaleString()}${suffix}`;
-      return val;
-    };
+      if (typeof val === "string" && val.trim() === "") return "N/A";
+      return val.toString();
+  };
+  
+    
   
     const leftParams = [
       ["Analysis ID", report.id.toString()],
       ["Principal", safeValue(report.principal, "$")],
-      ["Projection Period", safeValue(report.projection_period, "", " weeks")],
-      ["Deposit Frequency", safeValue(report.deposit_frequency)],
+      ["Projection Period", report.projection_period?.toString() ?? "N/A"],
+      ["Deposit Frequency", report.deposit_frequency?.toString() ?? "N/A"],
       ["Regular Withdrawal", safeValue(report.regular_withdrawal, "$")],
       ["Ending Balance", safeValue(report.ending_balance, "$")],
     ];
@@ -186,8 +193,8 @@ export default function ReportsPage() {
       ["Interest (weekly)", safeValue(report.interest_week, "", "%")],
       ["Tax Rate", safeValue(report.tax_rate, "", "%")],
       ["Additional Deposit", safeValue(report.additional_deposit, "$")],
-      ["Withdrawal Frequency", safeValue(report.withdrawal_frequency)],
-      ["Created At", safeValue(toLocalDateTime(report.created_at))],
+      ["Withdrawal Frequency", report.withdrawal_frequency?.toString() ?? "N/A"],
+      ["Created At", toLocalDateTime(report.created_at)],
     ];
   
     doc.setFontSize(labelFontSize);
